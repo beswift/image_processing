@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from PIL import Image
 import os
+import glob
 from feature_detectors import *
 from Image_processors import *
 
@@ -13,7 +14,7 @@ print(images_folder)
 
 
 
-for image in os.listdir(images_folder):
+for image in glob.glob(('{}//*.jpg'.format(images_folder))):
     print(image)
     image_path =os.path.join(images_folder,image)
     print (image_path)
@@ -22,7 +23,7 @@ for image in os.listdir(images_folder):
     # sift_features(imageIn,image)
     # surf_features(imageIn,image)
     # get_harris_corners(imageIn,image)
-    mask_fundus(imageIn,image)
+    countour_mask(imageIn,image)
 
 
 compare_images()

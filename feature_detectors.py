@@ -53,7 +53,7 @@ def surf_features(image, filename):
 def compare_images():
     # read images
     img1 = mask_fundus(cv2.imread('test_images//A-1.jpg'),"A-1.jpg")
-    img2 = cv2.imread('test_images/A-2.JPG')
+    img2 = cv2.imread('test_images/A-2.jpg')
 
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
