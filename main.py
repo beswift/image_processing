@@ -8,6 +8,7 @@ from feature_detectors import *
 from Image_processors import *
 import pytesseract as ts
 from pdf2image import convert_from_path, convert_from_bytes
+from io import BytesIO
 
 # Sidebar Section
 st.sidebar.write('''
@@ -73,12 +74,15 @@ if playground == 'OCR':
     with img_col:
         if img_file_buffer.type in doc_types:
 
-                st.write("document detected, converting to image..")
-                bytes_img = img_file_buffer.read()
-                img_file_buffered = convert_from_bytes(bytes_img, timeout=8000)
-                st.write(img_file_buffered)
-                st.image(img_file_buffered, use_column_width=True)
-                pre_img = img_file_buffered
+            st.write("document detected, converting to image..")
+            bytes_img = img_file_buffer.read()
+            img_file_buffered = convert_from_bytes(bytes_img, timeout=8000)
+
+            st.write(img_file_buffered)
+            st.image(img_file_buffered, use_column_width=True)
+            pre_img = convert2jpg(img_file_buffered[0])
+            st.image(pre_img)
+            image = Image.open(BytesIO(pre_img))
 
         elif img_file_buffer.type in img_types:
             st.write("image detected..")
@@ -86,8 +90,11 @@ if playground == 'OCR':
             st.write(image)
             st.image(image, caption="The caption", use_column_width=True)
             # test_image = cv2.imread(img_array)
-            pre_img = np.array(image)  # for opencv
+
     with ocr_col:
+        st.write(type(image))
+        pre_img = np.array(image)  # for opencv
+        st.write(type(pre_img))
         proc_image = cv2.cvtColor(pre_img, cv2.COLOR_BGR2RGB)
         image_text = ts.image_to_string(proc_image)
         st.text(image_text)

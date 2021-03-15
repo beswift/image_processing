@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
+from io import BytesIO
 
 
 # load image as grayscale
 def mask_fundus(image, filename):
-    #cv2.imshow("test" + filename, image)
-    #cv2.waitKey(0)
+    # cv2.imshow("test" + filename, image)
+    # cv2.waitKey(0)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # threshold input image using otsu thresholding as mask and refine with morphology
@@ -22,24 +23,25 @@ def mask_fundus(image, filename):
     result_filename = "masked_" + filename
     # save resulting masked image
     cv2.imwrite(result_filename, result)
-    #cv2.imshow(result_filename, result)
-    #cv2.waitKey(0)
+    # cv2.imshow(result_filename, result)
+    # cv2.waitKey(0)
     return result
 
 
-def display_contours(image, contours, color = (255, 0, 0), thickness = -1, title = None):
+def display_contours(image, contours, color=(255, 0, 0), thickness=-1, title=None):
     # Contours are drawn on the original image, so let's make a copy first
     imShow = image.copy()
     for i in range(1, len(contours)):
         cv2.drawContours(imShow, contours, i, color, thickness)
-    cv2.imshow(title,imShow)
+    cv2.imshow(title, imShow)
     cv2.waitKey()
     cv2.destroyAllWindows()
 
+
 def countour_mask(image, filename):
-    #todo find a way to autoset this threshold
+    # todo find a way to autoset this threshold
     thresh = 45
-    color = (255,0,0)
+    color = (255, 0, 0)
     thickness = 2
     # Searcing for the eye
     # Let's see how this works setp-by-step
@@ -58,10 +60,10 @@ def countour_mask(image, filename):
     # Find contours
     # second output is hierarchy - we are not interested in it.
     contours, _ = cv2.findContours(threshImg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    for i in range(20,len(contours)):
+    for i in range(20, len(contours)):
         # Let's see what we've got:
         cv2.drawContours(image, contours, i, color, thickness)
-    cv2.imshow('contour_image'+filename, image)
+    cv2.imshow('contour_image' + filename, image)
     cv2.waitKey()
     cv2.destroyAllWindows()
     print("{:d} points".format(len(np.vstack(np.array(contours)))))
@@ -71,9 +73,11 @@ def countour_mask(image, filename):
     print("{:d}stack arrays".format(len(np.vstack(np.array(hull)))))
 
     # we only get one contour out of it, let's see it
-    title = "display_contour"+filename
-    display_contours(image, [hull], thickness=3, color=(0, 255, 0),title=title )
+    title = "display_contour" + filename
+    display_contours(image, [hull], thickness=3, color=(0, 255, 0), title=title)
 
 
-
-
+def convert2jpg(image):
+    with BytesIO() as f:
+        image.save(f, format='JPEG')
+        return f.getvalue()
