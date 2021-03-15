@@ -1,6 +1,6 @@
 import pytesseract
 import cv2
-from pdf2image import convert_from_path
+from pdf2image import convert_from_path,convert_from_bytes
 
 def get_basic_tocr(image,filename):
     if filename[:-4].lower() == '.pdf':
@@ -11,3 +11,4 @@ def get_basic_tocr(image,filename):
     text = pytesseract.image_to_string(img)
     print(text)
     return text
+

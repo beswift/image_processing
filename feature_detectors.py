@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 from Image_processors import *
+import streamlit as st
+
 
 
 # Harris corner detection:
@@ -71,5 +73,6 @@ def compare_images():
     matches = sorted(matches, key=lambda x: x.distance)
 
     img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[100:], img2, flags=2)
-    cv2.imshow('match', img3)
-    cv2.waitKey(0)
+    st.image(img3,caption='compared images')
+    #cv2.imshow('match', img3)
+    #cv2.waitKey(0)

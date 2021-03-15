@@ -4,8 +4,8 @@ import numpy as np
 
 # load image as grayscale
 def mask_fundus(image, filename):
-    cv2.imshow("test" + filename, image)
-    cv2.waitKey(0)
+    #cv2.imshow("test" + filename, image)
+    #cv2.waitKey(0)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     # threshold input image using otsu thresholding as mask and refine with morphology
@@ -22,8 +22,8 @@ def mask_fundus(image, filename):
     result_filename = "masked_" + filename
     # save resulting masked image
     cv2.imwrite(result_filename, result)
-    cv2.imshow(result_filename, result)
-    cv2.waitKey(0)
+    #cv2.imshow(result_filename, result)
+    #cv2.waitKey(0)
     return result
 
 
