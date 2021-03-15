@@ -7,6 +7,7 @@ import glob
 from feature_detectors import *
 from Image_processors import *
 import pytesseract as ts
+from pytesseract import Output
 from pdf2image import convert_from_path, convert_from_bytes
 from io import BytesIO
 
@@ -81,7 +82,6 @@ if playground == 'OCR':
             st.write(img_file_buffered)
             st.image(img_file_buffered, use_column_width=True)
             pre_img = convert2jpg(img_file_buffered[0])
-            st.image(pre_img)
             image = Image.open(BytesIO(pre_img))
 
         elif img_file_buffer.type in img_types:
@@ -96,5 +96,13 @@ if playground == 'OCR':
         pre_img = np.array(image)  # for opencv
         st.write(type(pre_img))
         proc_image = cv2.cvtColor(pre_img, cv2.COLOR_BGR2RGB)
+
         image_text = ts.image_to_string(proc_image)
         st.text(image_text)
+    with img_col:
+        d = ts.image_to_data(proc_image, output_type=Output.DICT)
+        n_boxes = len(d['level'])
+        for i in range(n_boxes):
+            (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
+            cv2.rectangle(pre_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        st.image(pre_img)
