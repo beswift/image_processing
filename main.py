@@ -16,22 +16,58 @@ st.sidebar.write('''
 # Image processing playground
 ''')
 st.sidebar.subheader("Pick an area to explore")
-playground = st.sidebar.radio("Playgrounds", ['Image Alignment', 'OCR'])
+playground = st.sidebar.radio("Playgrounds", ['Image Alignment','Image Processing','OCR'])
 
 # header section
 header = st.empty()
 
+img_types = ['image/jpg', 'image/png', 'image/jpeg', 'image/tiff']
+doc_types = ['application/pdf']
+ata_types = ['csv']
+
+def file_uploader(function_name):
+    img_buff = st.file_uploader("Upload an image to {}".format(function_name))
+    return img_buff
+
 # Image Alignment
 if playground == 'Image Alignment':
     header = st.header('Image Alignment')
+    '''
+    How do we register images so that they can be accurately aligned?
+    
+    [1] Convert input image to standard image object
+    
+    [2] Convert images to grayscale 
+    
+    [3] Enhance image to amplify curves
+    
+    [4] (fundus photos) Mask image to remove background
+    
+    [5] Feature detection to detect corners ( ** test if actually needed with SIFT/SURF)
+    
+    [6] Implement and Compare SURF and SIFT based feature detection
+    
+    [7] Create composite image using detected points from step 5
+    
+    '''
 
-    if st.button('Test compare'):
-        compare_images()
+    toolbox = st.beta_container()
 
-    images_folder = os.path.join(os.getcwd(), "test_images")
-    st.write(images_folder)
+    with toolbox:
+        func_col, space_col, result_col = st.beta_columns((2,.5,4))
 
-    for image in glob.glob(('{}//*.jpg'.format(images_folder))):
+    with func_col:
+        if st.button('Test compare'):
+            compare_images()
+
+    with result_col:
+        func_image = file_uploader("compare")
+
+
+    working_folder = st.selectbox("pick a working folder",os.listdir(os.getcwd()))
+    images_folder = os.path.join(os.getcwd(),working_folder).lower()
+    for image in glob.glob(('{}//*.*'.format(images_folder))):
+
         st.image(image)
         image_path = os.path.join(images_folder, image)
         st.write(image_path)
@@ -43,6 +79,36 @@ if playground == 'Image Alignment':
         # countour_mask(imageIn,image)
 
     # compare_images()
+
+# Image Processing
+
+if playground == 'Image Processing':
+    header = st.header('Computer Vision for human vision')
+
+    '''
+    What kind of things need to be done to images to make them more usable?
+    
+    [ ] Single file multipage tiff merging (for Optos primary images)
+    
+    [ ] Image Enhancement  - normalize image and adjust brightness contrast
+    
+    [ ] Image Filters - RGB filter based on frequency for better layer imaging
+    
+    [ ] Raw OCT file parsing 
+    '''
+    proc_container = st.beta_container()
+
+    with proc_container:
+        description_col, space, img_col = st.beta_columns((2,.5,4))
+
+    with description_col:
+        st.write("merge tiffs..")
+
+    with img_col:
+        m_tiff = file_uploader("merge")
+        
+
+
 
 # OCR
 
@@ -61,10 +127,9 @@ if playground == 'OCR':
      [4] Store values in PHI array
     '''
 
-    img_file_buffer = st.file_uploader("Upload an image")
-    img_types = ['image/jpg', 'image/png', 'image/jpeg', 'image/tiff']
-    doc_types = ['application/pdf']
-    data_types = ['csv']
+    #
+
+    img_file_buffer = file_uploader("read")
 
     image_overview_section = st.beta_container()
     with image_overview_section:
@@ -96,9 +161,14 @@ if playground == 'OCR':
         pre_img = np.array(image)  # for opencv
         st.write(type(pre_img))
         proc_image = cv2.cvtColor(pre_img, cv2.COLOR_BGR2RGB)
+        d = ts.image_to_data(proc_image, output_type=Output.DICT)
+        n_boxes = len(d['level'])
+        for i in range(n_boxes):
+            (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
+            cv2.rectangle(pre_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            st.text(d['text'][i])
+            st.write("{},{},{},{}".format(x, y, w, h))
 
-        image_text = ts.image_to_string(proc_image)
-        st.text(image_text)
     with img_col:
         d = ts.image_to_data(proc_image, output_type=Output.DICT)
         n_boxes = len(d['level'])
