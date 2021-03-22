@@ -36,8 +36,7 @@ def sift_features(image, filename):
     print(" kps: {}, descriptors: {}".format(len(kps), descs.shape))
     sift_image = cv2.drawKeypoints(gray, kps, None, (255, 0, 0), 4)
     sift_img_name = filename + ' sift image'
-    cv2.imshow(sift_img_name, sift_image)
-    cv2.waitKey(0)
+    return sift_image, sift_img_name
 
 
 # Surf detection
@@ -55,7 +54,7 @@ def surf_features(image, filename):
 def compare_images():
     # read images
     img1 = mask_fundus(cv2.imread('test_images//A-1.jpg'),"A-1.jpg")
-    img2 = cv2.imread('test_images/A-2.jpg')
+    img2 = mask_fundus(cv2.imread('test_images//A-2.jpg'),"A-2.jpg")
 
     img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
@@ -72,7 +71,7 @@ def compare_images():
     matches = bf.match(descriptors_1, descriptors_2)
     matches = sorted(matches, key=lambda x: x.distance)
 
-    img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[100:], img2, flags=2)
+    img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[420:450], img2, flags=2)
     st.image(img3,caption='compared images')
     #cv2.imshow('match', img3)
     #cv2.waitKey(0)

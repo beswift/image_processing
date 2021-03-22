@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from io import BytesIO
+import tifffile
 
 
 # load image as grayscale
@@ -81,3 +82,14 @@ def convert2jpg(image):
     with BytesIO() as f:
         image.save(f, format='JPEG')
         return f.getvalue()
+
+
+####  Image Manipulation helpers
+
+def create_tiff_layers(filename):
+    blue_init = tifffile.imread(filename, key=0)
+    green = tifffile.imread(filename, key=1)
+    red = tifffile.imread(filename, key=2)
+    blue = np.resize(blue_init, red.shape)
+    blue[blue == 0] = 0
+    return blue, green, red
