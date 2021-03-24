@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 from io import BytesIO
-import tifffile
+from tifffile import imread,imwrite,imshow
+import streamlit as st
+from PIL import Image
 
 
 # load image as grayscale
@@ -87,9 +89,15 @@ def convert2jpg(image):
 ####  Image Manipulation helpers
 
 def create_tiff_layers(filename):
-    blue_init = tifffile.imread(filename, key=0)
-    green = tifffile.imread(filename, key=1)
-    red = tifffile.imread(filename, key=2)
+    blue_init = imread(filename, key=0)
+    green = imread(filename, key=1)
+    red = imread(filename, key=2)
     blue = np.resize(blue_init, red.shape)
     blue[blue == 0] = 0
     return blue, green, red
+
+def generate_tiff_files(filename):
+    st.write(filename)
+    image_data = filename.read()
+    image = imread(image_data)
+    return image
