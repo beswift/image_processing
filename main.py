@@ -15,6 +15,7 @@ import pytesseract as ts
 from pytesseract import Output
 from pdf2image import convert_from_path, convert_from_bytes
 from io import BytesIO
+from PIL import Image
 import tifffile
 from skimage import exposure
 
@@ -87,6 +88,7 @@ if playground == 'Image Alignment':
     #mask_Xcenter = st.slider("mask x center", 0,1980,800,1)
     #mask_Ycenter = st.slider("mask y center",0,1980,800,1)
     #mask_radius = st.slider("mask radius",0,2000,1000,1)
+    Image.MAX_IMAGE_PIXELS = 933120000
     working_folder = st.selectbox("pick a working folder", os.listdir(os.getcwd()))
     images_folder = os.path.join(os.getcwd(), working_folder).lower()
     groupies = []

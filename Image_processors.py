@@ -133,10 +133,12 @@ def generate_tiff_files(filename):
 
 def pre_stitch(image):
     masked = circle_mask(image)
-    gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
+    r,g,b = cv2.split(masked)
     clahe = cv2.createCLAHE(clipLimit=1.8,tileGridSize=(8,8))
-    clahed = clahe.apply(gray)
-    able = cv2.cvtColor(clahed,cv2.COLOR_GRAY2RGB)
+    clahe_b = clahe.apply(b)
+    clahe_g = clahe.apply(g)
+    clahe_r = clahe.apply(r)
+    able = cv2.merge((clahe_b, clahe_g, clahe_r))
     st.image(able)
     return able
 
