@@ -6,7 +6,33 @@ import streamlit as st
 from PIL import Image
 
 
-# load image as grayscale
+def get_fundus_mask(img):
+
+    b,g,r = cv2.split(img)
+    #Threshold to red values
+    ret, img_threshold = cv2.threshold(r, 10, 255, cv2.THRESH_BINARY)
+    # Create a circular kernel
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
+    # erode the kernel to isolate the most red area
+    erode_img = cv2.erode(img_threshold, kernel, iterations=1)
+    # Display results
+    st.image(erode_img, caption="image erode")
+    # Return result
+    return erode_img
+
+
+def circle_mask(image):
+    mask = np.zeros(image.shape[:2], dtype="uint8")
+    centerx = int((image.shape[1])/2)
+    centery = int((image.shape[0])/2)
+    radius = int((image.shape[0])/1.7)
+    cv2.circle(mask, (centerx,centery), radius, 255,-1)
+    masked = cv2.bitwise_and(image,image, mask=mask)
+    # show the output images
+    #st.image(mask, "circular mask")
+    #st.image(masked, "masked image")
+    return masked
+
 def mask_fundus(image, filename):
     # cv2.imshow("test" + filename, image)
     # cv2.waitKey(0)
@@ -101,3 +127,16 @@ def generate_tiff_files(filename):
     image_data = filename.read()
     image = imread(image_data)
     return image
+
+
+# Pipelines
+
+def pre_stitch(image):
+    masked = circle_mask(image)
+    gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=1.8,tileGridSize=(8,8))
+    clahed = clahe.apply(gray)
+    able = cv2.cvtColor(clahed,cv2.COLOR_GRAY2RGB)
+    st.image(able)
+    return able
+

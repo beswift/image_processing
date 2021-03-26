@@ -29,14 +29,14 @@ def get_harris_corners(image, filename):
 
 
 # Sift detection
-def sift_features(image, filename):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def sift_features(image):
+    masked = circle_mask(image)
+    gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
     sift = cv2.xfeatures2d.SIFT_create()
     (kps, descs) = sift.detectAndCompute(gray, None)
     print(" kps: {}, descriptors: {}".format(len(kps), descs.shape))
     sift_image = cv2.drawKeypoints(gray, kps, None, (255, 0, 0), 4)
-    sift_img_name = filename + ' sift image'
-    return sift_image, sift_img_name
+    return sift_image
 
 
 # Surf detection
@@ -53,17 +53,21 @@ def surf_features(image, filename):
 
 def compare_images():
     # read images
-    img1 = mask_fundus(cv2.imread('test_images//A-1.jpg'),"A-1.jpg")
-    img2 = mask_fundus(cv2.imread('test_images//A-2.jpg'),"A-2.jpg")
+    img1 = cv2.cvtColor(cv2.imread('test_images//A-1.jpg'),cv2.COLOR_BGR2RGB)
+    img2 = cv2.cvtColor(cv2.imread('test_images//A-2.jpg'),cv2.COLOR_BGR2RGB)
 
-    img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-    img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+    grey1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+    grey2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+
+    masked1 = circle_mask(grey1)
+    masked2 = circle_mask(grey2)
+
 
     # sift
     sift = cv2.xfeatures2d.SIFT_create()
 
-    keypoints_1, descriptors_1 = sift.detectAndCompute(img1, None)
-    keypoints_2, descriptors_2 = sift.detectAndCompute(img2, None)
+    keypoints_1, descriptors_1 = sift.detectAndCompute(masked1, None)
+    keypoints_2, descriptors_2 = sift.detectAndCompute(masked2, None)
 
     # feature matching
     bf = cv2.BFMatcher(cv2.NORM_L1, crossCheck=True)
@@ -75,3 +79,16 @@ def compare_images():
     st.image(img3,caption='compared images')
     #cv2.imshow('match', img3)
     #cv2.waitKey(0)
+
+def compare_images2(imageList):
+    for img in imageList:
+        # todo need to output a dict with a key:value like img:keypoints  or list with tuples like (img,keypoints)
+        pass
+
+
+
+def stitch_images(imagesList):
+    stitcher = cv2.Stitcher_create()
+    stitched = stitcher.stitch(imagesList)
+    return stitched
+

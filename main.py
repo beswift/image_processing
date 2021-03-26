@@ -75,21 +75,36 @@ if playground == 'Image Alignment':
             compare_images()
 
     with result_col:
-        func_image = file_uploader("compare")
+        '''
+        ### upload here
+        '''
+        # TODO: use files_uploader here to pass list to compare function
+        # func_image = file_uploader("compare")
 
+    '''
+    ## Test running sift on a folder of matching images..
+    '''
+    #mask_Xcenter = st.slider("mask x center", 0,1980,800,1)
+    #mask_Ycenter = st.slider("mask y center",0,1980,800,1)
+    #mask_radius = st.slider("mask radius",0,2000,1000,1)
     working_folder = st.selectbox("pick a working folder", os.listdir(os.getcwd()))
     images_folder = os.path.join(os.getcwd(), working_folder).lower()
+    groupies = []
     for image in glob.glob(('{}//*.*'.format(images_folder))):
+        groupies = groupies
         image_path = os.path.join(images_folder, image)
         st.write(image_path)
         imageIn = cv2.imread(image_path)
-        sift_image, sift_image_name = sift_features(imageIn,image)
-        st.image(sift_image,caption=sift_image_name)
-        #gray = cv2.cvtColor(imageIn, cv2.COLOR_BGR2GRAY)
-        # sift_features(imageIn,image)
-        # surf_features(imageIn,image)
-        # get_harris_corners(imageIn,image)
-        # countour_mask(imageIn,image)
+        sift_image = sift_features(imageIn)
+        input_img = pre_stitch(imageIn)
+        groupies.append(input_img)
+        st.image(sift_image,caption=image)
+
+    st.write(groupies)
+    stiched = stitch_images(groupies)
+
+    st.image(stiched[1])
+
 
     # compare_images()
 
@@ -191,8 +206,8 @@ if playground == 'Image Processing':
 
     with description_col:
 
-        alpha = st.slider("select an Alpha Value:",min_value=0.0, max_value= 255.0, value= 0.0, step=.5)
-        beta = st.slider("select a Beta Value:", min_value=0.0, max_value=255.0, value=65535.0,step =.5)
+        alpha = st.slider("select an Alpha Value:",min_value=0.0, max_value= 510.0, value= 300.0, step=.5)
+        beta = st.slider("select a Beta Value:", min_value=0.0, max_value=255.0, value=0.0,step =.5)
 
     with img_col:
         # Scale image channel
@@ -219,7 +234,7 @@ if playground == 'Image Processing':
 
     with description_col:
 
-        cliplimit = st.slider("select a clip limit", min_value=0.0, max_value = 100.0, value = 3.0, step=.1)
+        cliplimit = st.slider("select a clip limit", min_value=0.0, max_value = 100.0, value = 1.9, step=.1)
         tileGridSize = st.select_slider("select a tile grid size", options=[(1,1),(2,2),(3,3),(5,5),(8,8),(13,13),(21,21)])
 
     with img_col:
