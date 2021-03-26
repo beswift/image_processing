@@ -102,10 +102,15 @@ if playground == 'Image Alignment':
         groupies.append(input_img)
         st.image(sift_image,caption=image)
 
+    st.write("images to be montaged")
     st.write(groupies)
-    stiched = stitch_images(groupies)
 
-    st.image(stiched[1])
+    modes = ["panorama","affine","neither"]
+    mode = st.radio("mode:",modes )
+    stitch_trigger = st.button("Generate Montage")
+    if stitch_trigger:
+        stitched = stitch_images(groupies,mode=mode)
+        st.image(stitched[1])
 
 
     # compare_images()

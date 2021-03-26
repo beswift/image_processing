@@ -90,8 +90,16 @@ def compare_images2(imageList):
 
 
 
-def stitch_images(imagesList):
-    stitcher = cv2.Stitcher_create()
+def stitch_images(imagesList,mode):
+    if mode == "panorama":
+        st.write("panorama stitching")
+        stitcher = cv2.Stitcher_create(cv2.STITCHER_PANORAMA)
+    elif mode == "affine":
+        st.write("affine stitching")
+        stitcher = cv2.Stitcher_create(cv2.STITCHER_SCANS)
+    else:
+        st.write("hmm, no mode?  stitching up like a robot")
+        stitcher = cv2.Stitcher_create()
     stitched = stitcher.stitch(imagesList)
     return stitched
 
