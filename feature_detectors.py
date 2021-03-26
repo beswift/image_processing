@@ -32,7 +32,10 @@ def get_harris_corners(image, filename):
 def sift_features(image):
     masked = circle_mask(image)
     gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
-    sift = cv2.xfeatures2d.SIFT_create()
+    try:
+        sift = cv2.xfeatures2d.SIFT_create()
+    except:
+        sift = cv2.SIFT_create()
     (kps, descs) = sift.detectAndCompute(gray, None)
     print(" kps: {}, descriptors: {}".format(len(kps), descs.shape))
     sift_image = cv2.drawKeypoints(gray, kps, None, (255, 0, 0), 4)
