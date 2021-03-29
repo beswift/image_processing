@@ -4,6 +4,7 @@ from io import BytesIO
 from tifffile import imread,imwrite,imshow
 import streamlit as st
 from PIL import Image
+import os
 
 
 def get_fundus_mask(img):
@@ -131,14 +132,37 @@ def generate_tiff_files(filename):
 
 # Pipelines
 
+def get_images(imageList,images_folder,image_source):
+    outputList = []
+    for image in imageList:
+        if image_source == "Pick Folder":
+            filename = image
+            image_path = os.path.join(images_folder, image)
+            imageIn = cv2.imread(image_path)
+            #imageIn = imageIn.astype(np.uint16)
+            #imageIn - cv2.cvtColor(imageIn,cv2.COLOR_BGR2RGB)
+            imageIn = np.array(imageIn)
+            outputList.append((imageIn,filename))
+        if image_source =="File Uploader":
+            filename = image.name
+            image = Image.open(image)
+            image_arr = np.array(image)
+            #imageIn = cv2.imread(image_arr)
+            imageIn = cv2.cvtColor(image_arr, cv2.COLOR_RGB2BGR)
+            #imageIn = imageIn.astype(np.uint16)
+            #imageIn = cv2.cvtColor(cvimage,cv2.COLOR_BGR2RGB)
+            imageIn = np.array(imageIn)
+            outputList.append((imageIn,filename))
+    return outputList
+
 def pre_stitch(image):
     masked = circle_mask(image)
-    r,g,b = cv2.split(masked)
+    b,g,r = cv2.split(masked)
     clahe = cv2.createCLAHE(clipLimit=1.8,tileGridSize=(8,8))
     clahe_b = clahe.apply(b)
     clahe_g = clahe.apply(g)
     clahe_r = clahe.apply(r)
-    able = cv2.merge((clahe_b, clahe_g, clahe_r))
-    st.image(able)
+    able = cv2.merge((clahe_r, clahe_g, clahe_b))
+    #st.image(able)
     return able
 

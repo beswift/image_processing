@@ -40,23 +40,23 @@ def file_uploader(function_name):
 
 
 def files_uploader(function_name):
-    img_buff = st.file_uploader("Upload an image to {}".format(function_name), accept_multiple_files=True)
-    return img_buff[0]
+    img_buff = st.file_uploader("Upload images {}".format(function_name), accept_multiple_files=True)
+    return img_buff
 
 
 # Image Alignment
 if playground == 'Image Alignment':
     header = st.header('Image Alignment')
     '''
-    How do we register images so that they can be accurately aligned?
+    How do we register images to better align and combine??
     
-    [1] Convert input image to standard image object
+    [1] Convert input images to standard image objects
     
-    [2] Convert images to grayscale 
+    [2] (fundus photos) Mask image to remove background
     
-    [3] Enhance image to amplify curves
+    [3] Convert images to grayscale 
     
-    [4] (fundus photos) Mask image to remove background
+    [4] Enhance images to amplify curves
     
     [5] Feature detection to detect corners ( ** test if actually needed with SIFT/SURF)
     
@@ -65,55 +65,181 @@ if playground == 'Image Alignment':
     [7] Create composite image using detected points from step 5
     
     '''
+    '''
+    ##  **Step 1.** Convert Images to a standard object
+    '''
+    file_container = st.beta_container()
 
-    toolbox = st.beta_container()
+    with file_container:
+        info_col, space_col, result_col = st.beta_columns((2, .5, 4))
 
-    with toolbox:
-        func_col, space_col, result_col = st.beta_columns((2, .5, 4))
+    with info_col:
+        '''
+        ### Choose image source:
+        '''
+        image_source = st.radio('',["File Uploader","Pick Folder"])
 
-    with func_col:
-        if st.button('Test compare'):
-            compare_images()
 
     with result_col:
         '''
-        ### upload here
+        ### Import Images:
         '''
-        # TODO: use files_uploader here to pass list to compare function
-        # func_image = file_uploader("compare")
+        if image_source == "File Uploader":
+            images = files_uploader("")
+            images_folder = None
+        if image_source == "Pick Folder":
+            working_folder = st.selectbox("pick a working folder", os.listdir(os.getcwd()))
+            images_folder = os.path.join(os.getcwd(), working_folder).lower()
+            images = glob.glob(('{}//*.*'.format(images_folder)))
+
+    image_container = st.beta_container()
+
+    with image_container:
+        ic_rbar, ic_status, ir_lbar = st.beta_columns((1,3,1))
+
+    with ic_rbar:
+        '''
+        '''
+    with ic_status:
+        '''
+        '''
+        ic_status_text = st.empty()
+        ic_status_text2 = st.empty()
+    with ir_lbar:
+        '''
+        '''
+
+    input_images = get_images(images,images_folder,image_source)
+
+    ic_status_text.write("Current images ready for processing: {} ".format(len(input_images)))
 
     '''
-    ## Test running sift on a folder of matching images..
+    ## Pre Process Images
     '''
-    #mask_Xcenter = st.slider("mask x center", 0,1980,800,1)
-    #mask_Ycenter = st.slider("mask y center",0,1980,800,1)
-    #mask_radius = st.slider("mask radius",0,2000,1000,1)
-    Image.MAX_IMAGE_PIXELS = 933120000
-    working_folder = st.selectbox("pick a working folder", os.listdir(os.getcwd()))
-    images_folder = os.path.join(os.getcwd(), working_folder).lower()
-    groupies = []
-    for image in glob.glob(('{}//*.*'.format(images_folder))):
-        groupies = groupies
-        image_path = os.path.join(images_folder, image)
-        st.write(image_path)
-        imageIn = cv2.imread(image_path)
-        sift_image = sift_features(imageIn)
-        input_img = pre_stitch(imageIn)
-        groupies.append(input_img)
-        st.image(sift_image,caption=image)
 
-    st.write("images to be montaged")
-    st.write(groupies)
+    if len(images) > 0:
+        Image.MAX_IMAGE_PIXELS = 933120000
 
-    modes = ["panorama","affine","neither"]
-    mode = st.radio("mode:",modes )
-    stitch_trigger = st.button("Generate Montage")
-    if stitch_trigger:
-        stitched = stitch_images(groupies,mode=mode)
-        st.image(stitched[1])
+        compare_input_container = st.beta_container()
+
+        with compare_input_container:
+            r_info_col, compare_viewer_col, l_info_col = st.beta_columns((2,5,2))
+
+        with r_info_col:
+            '''
+            '''
+            view_options = st.multiselect("apply:",["none","mask","grey","clahe","sift"])
 
 
-    # compare_images()
+
+        with compare_viewer_col:
+            '''
+            '''
+            base_view = st.empty()
+            mask_view = st.empty()
+            grey_view = st.empty()
+
+            clahe_clip = st.empty()
+            clahe_grid = st.empty()
+            clahe_view = st.empty()
+
+            sift_view = st.empty()
+
+
+            if "none" in view_options:
+                base_imgs = []
+                for image in input_images:
+                    image = cv2.cvtColor(image[0],cv2.COLOR_BGR2RGB)
+                    base_imgs.append(image)
+                base_overview = np.concatenate(base_imgs, axis=1)
+                base_view = st.image(base_overview)
+
+            if "mask" in view_options:
+                masked_imgs = []
+                for image in input_images:
+                    masked_img = circle_mask(image[0])
+                    masked_img = cv2.cvtColor(masked_img,cv2.COLOR_BGR2RGB)
+                    masked_imgs.append(masked_img)
+                masked_overview = np.concatenate(masked_imgs, axis=1)
+                mask_view = st.image(masked_overview)
+
+            if 'grey' in view_options:
+                grey_imgs = []
+                for image in input_images:
+                    grey_img = cv2.cvtColor(image[0], cv2.COLOR_BGR2GRAY)
+                    grey_imgs.append(grey_img)
+                grey_overview = np.concatenate(grey_imgs, axis=1)
+                grey_view = st.image(grey_overview)
+
+            if "clahe" in view_options:
+                clahe_clip = st.slider("clip limit",0.0,10.0,1.8,.1)
+                grids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
+                clahe_grid = st.select_slider("clahe grid",grids)
+                clahe_imgs = []
+                for image in input_images:
+                    clahe = cv2.createCLAHE(clipLimit=clahe_clip, tileGridSize=clahe_grid)
+                    g = cv2.cvtColor(image[0],cv2.COLOR_BGR2GRAY)
+                    clahe_img = clahe.apply(g)
+                    clahe_imgs.append(clahe_img)
+                clahe_overview = np.concatenate(clahe_imgs, axis=1)
+                clahe_view = st.image(clahe_overview)
+
+            if "sift" in view_options:
+                image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]
+                sift_images = []
+                for image in input_images:
+                    sift_image,kps,descs = sift_features(image[0])
+                    sift_images.append(sift_image)
+                sift_overview = np.concatenate(sift_images, axis=1)
+                sift_view = st.image(sift_overview)
+
+        with l_info_col:
+            '''
+            '''
+            keypoints_status = st.empty()
+
+        default_groupies = []
+        for image in input_images:
+            image = pre_stitch(image[0])
+            default_groupies.append(image)
+
+        groupy_options = []
+
+        groupy_options.append(('default_groupies',default_groupies))
+
+        if "base" in view_options:
+            groupy_options.append(('base',base_imgs))
+        if 'masked' in view_options:
+            groupy_options.append(('masked',masked_imgs))
+        if 'grey' in view_options:
+            groupy_options.append(('grey',grey_imgs))
+        if 'clahe' in view_options:
+            groupy_options.append(('clahe',clahe_imgs))
+
+
+        modes = ["panorama","affine","neither"]
+        mode = st.radio("mode:",modes )
+        def get_group_name(tuple):
+            name = tuple[0]
+            return name
+
+        groupies = st.radio("image set to montage:",groupy_options,format_func=get_group_name)
+        stitch_trigger = st.button("Generate Montage")
+        if stitch_trigger:
+            stitched = stitch_images(groupies[1],mode=mode)
+            #st.write(stitched)
+            #if stitched[0] == 0:
+            st.image(stitched[1])
+
+
+        image_list = []
+        for image in input_images:
+            image_list.append(image[0])
+        stitchup = stitch_images(image_list, mode="neither")
+        st.image(stitchup[1])
+
+
+        # compare_images()
 
 # Image Processing
 

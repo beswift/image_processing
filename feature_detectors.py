@@ -32,32 +32,36 @@ def get_harris_corners(image, filename):
 def sift_features(image):
     masked = circle_mask(image)
     gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=1.9, tileGridSize=(8,8))
+    gray = clahe.apply(gray)
     try:
         sift = cv2.xfeatures2d.SIFT_create()
     except:
         sift = cv2.SIFT_create()
     (kps, descs) = sift.detectAndCompute(gray, None)
     print(" kps: {}, descriptors: {}".format(len(kps), descs.shape))
-    sift_image = cv2.drawKeypoints(gray, kps, None, (255, 0, 0), 4)
-    return sift_image
+    rgb = cv2.cvtColor(masked, cv2.COLOR_BGR2RGB)
+    sift_image = cv2.drawKeypoints(rgb, kps, None, (0, 0, 255), 4)
+    return sift_image,kps, descs
 
 
 # Surf detection
-def surf_features(image, filename):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def surf_features(image):
+    masked = circle_mask(image)
+    gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
     surf = cv2.xfeatures2d.SURF_create()
     (kps, descs) = surf.detectAndCompute(gray, None)
-    surf_image = cv2.drawKeypoints(gray, kps, None, (255, 0, 0), 4)
+    surf_image = cv2.drawKeypoints(masked, kps, None, (255, 0, 0), 4)
     print(" kps: {}, descriptors: {}".format(len(kps), descs.shape))
     surf_image_name = filename + " surf image"
     cv2.imshow(surf_image_name, surf_image)
     cv2.waitKey(0)
 
 
-def compare_images():
+def compare_images(img1,img2):
     # read images
-    img1 = cv2.cvtColor(cv2.imread('test_images//A-1.jpg'),cv2.COLOR_BGR2RGB)
-    img2 = cv2.cvtColor(cv2.imread('test_images//A-2.jpg'),cv2.COLOR_BGR2RGB)
+    img1 = cv2.cvtColor(img1,cv2.COLOR_BGR2RGB)
+    img2 = cv2.cvtColor(img2,cv2.COLOR_BGR2RGB)
 
     grey1 = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
     grey2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
@@ -65,9 +69,8 @@ def compare_images():
     masked1 = circle_mask(grey1)
     masked2 = circle_mask(grey2)
 
-
     # sift
-    sift = cv2.xfeatures2d.SIFT_create()
+    sift = cv2.SIFT_create()
 
     keypoints_1, descriptors_1 = sift.detectAndCompute(masked1, None)
     keypoints_2, descriptors_2 = sift.detectAndCompute(masked2, None)
@@ -78,7 +81,7 @@ def compare_images():
     matches = bf.match(descriptors_1, descriptors_2)
     matches = sorted(matches, key=lambda x: x.distance)
 
-    img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[420:450], img2, flags=2)
+    img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[0:450], img2, flags=2)
     st.image(img3,caption='compared images')
     #cv2.imshow('match', img3)
     #cv2.waitKey(0)
