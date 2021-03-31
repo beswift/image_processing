@@ -128,7 +128,7 @@ if playground == 'Image Alignment':
         with r_info_col:
             '''
             '''
-            view_options = st.multiselect("apply:",["none","mask","grey","clahe","sift"])
+            view_options = st.multiselect("apply:",["none","mask","grey","clahe","eClahe","sift"])
 
 
 
@@ -142,6 +142,10 @@ if playground == 'Image Alignment':
             clahe_clip = st.empty()
             clahe_grid = st.empty()
             clahe_view = st.empty()
+
+            eClahe_clip = st.empty()
+            eClahe_grid = st.empty()
+            eClahe_view = st.empty()
 
             sift_view = st.empty()
 
@@ -184,8 +188,24 @@ if playground == 'Image Alignment':
                 clahe_overview = np.concatenate(clahe_imgs, axis=1)
                 clahe_view = st.image(clahe_overview)
 
+            if "eClahe" in view_options:
+                eClahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
+                tgrids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
+                eClahe_grid= st.select_slider("clahe grid", tgrids)
+                eClahe_imgs = []
+                for image in input_images:
+                    eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
+                    b,g,r = cv2.split(image[0])
+                    b_clahe_img = eClahe.apply(b)
+                    g_clahe_img = eClahe.apply(g)
+                    r_clahe_img = eClahe.apply(r)
+                    eClahe_img = cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img))
+                    eClahe_imgs.append(eClahe_img)
+                eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
+                eClahe_view = st.image(eClahe_overview)
+
             if "sift" in view_options:
-                image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]
+                #image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]
                 sift_images = []
                 for image in input_images:
                     sift_image,kps,descs = sift_features(image[0])
@@ -209,12 +229,14 @@ if playground == 'Image Alignment':
 
         if "base" in view_options:
             groupy_options.append(('base',base_imgs))
-        if 'masked' in view_options:
+        if 'mask' in view_options:
             groupy_options.append(('masked',masked_imgs))
         if 'grey' in view_options:
             groupy_options.append(('grey',grey_imgs))
         if 'clahe' in view_options:
             groupy_options.append(('clahe',clahe_imgs))
+        if 'eClahe' in view_options:
+            groupy_options.append(('eClahe', eClahe_imgs))
 
 
         modes = ["panorama","affine","neither"]
@@ -231,12 +253,16 @@ if playground == 'Image Alignment':
             #if stitched[0] == 0:
             st.image(stitched[1])
 
+        default_align_status = st.empty()
 
         image_list = []
         for image in input_images:
-            image_list.append(image[0])
+            image = cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)
+            image_list.append(image)
+            default_align_status.write("merge candidates: {}".format(len(image_list)))
         stitchup = stitch_images(image_list, mode="neither")
         st.image(stitchup[1])
+        default_align_status.write("default candidates merged... this is what images look like with minimal processing: ")
 
 
         # compare_images()
