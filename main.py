@@ -8,6 +8,7 @@ import os
 import glob
 
 from tifffile import TiffFile
+import csv
 
 from feature_detectors import *
 from Image_processors import *
@@ -24,7 +25,7 @@ st.sidebar.write('''
 # Image processing playground
 ''')
 st.sidebar.subheader("Pick an area to explore")
-playground = st.sidebar.radio("Playgrounds", ['Image Alignment', 'Image Processing', 'OCR'])
+playground = st.sidebar.radio("Playgrounds", ['Image Alignment', 'Image Processing', 'OCR',"scratch"])
 
 # header section
 header = st.empty()
@@ -533,3 +534,14 @@ if playground == 'OCR':
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
             cv2.rectangle(pre_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
         st.image(pre_img)
+
+if playground == "scratch":
+    st.header("test area")
+
+    working_files = file_uploader("working files")
+
+    file = "G:\\OneDrive\\Desktop\\opd3\\opd\\janet__abou-ganim_day and night_B_20210402_103050.csv"
+    with open(file, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
+        for row in reader:
+            st.write(', '.join(row))
