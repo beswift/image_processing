@@ -1,4 +1,6 @@
 import io
+from datetime import datetime
+from helpers import parse_opd3_csv
 
 import streamlit as st
 import cv2
@@ -538,10 +540,20 @@ if playground == 'OCR':
 if playground == "scratch":
     st.header("test area")
 
-    working_files = file_uploader("working files")
+    working_folder = st.selectbox("pick a working folder", os.listdir(os.getcwd()))
+    images_folder = os.path.join(os.getcwd(), working_folder,"opd").lower()
+    images = glob.glob(('{}//*.*'.format(images_folder)))
 
-    file = "G:\\OneDrive\\Desktop\\opd3\\opd\\janet__abou-ganim_day and night_B_20210402_103050.csv"
-    with open(file, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-        for row in reader:
-            st.write(', '.join(row))
+    base_path = "C:\\Users\\bswif\\Source\\Repos\\Autosave_Workspace\\image_alignment\\opd3\\opd\\"
+
+    file = "C:\\Users\\bswif\\Source\\Repos\\Autosave_Workspace\\image_alignment\\opd3\\opd\\kristen__ainsworth_day and night_B_20210402_103422.csv"
+    file1 = os.path.join(base_path,"janet__abou-ganim_day and night_B_20210402_103050.csv")
+
+    csvinfo_card = st.empty
+
+    for image in images:
+        if image.split(".")[-1] in ata_types:
+            info = parse_opd3_csv(image,",")
+            st.write(info[1])
+
+
