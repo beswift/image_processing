@@ -27,7 +27,7 @@ st.sidebar.write('''
 # Image processing playground
 ''')
 st.sidebar.subheader("Pick an area to explore")
-playground = st.sidebar.radio("Playgrounds", ['Image Alignment', 'Image Processing', 'OCR',"scratch"])
+playground = st.sidebar.radio("Playgrounds", ['Montage','Image Alignment', 'Image Processing', 'OCR',"scratch"])
 
 # header section
 header = st.empty()
@@ -46,6 +46,31 @@ def files_uploader(function_name):
     img_buff = st.file_uploader("Upload images {}".format(function_name), accept_multiple_files=True)
     return img_buff
 
+# Quick Montage
+if playground == 'Montage':
+    header = st.header('Quick Montage')
+    file_container = st.beta_container()
+
+    with file_container:
+        info_col, space_col, result_col = st.beta_columns((2, .5, 4))
+
+    with info_col:
+        '''
+        ### Choose image source:
+        '''
+        image_source = st.radio('', ["File Uploader", "Pick Folder"])
+
+    with result_col:
+        '''
+        ### Import Images:
+        '''
+        if image_source == "File Uploader":
+            images = files_uploader("")
+            images_folder = None
+        if image_source == "Pick Folder":
+            working_folder = st.selectbox("pick a working folder", os.listdir(os.getcwd()))
+            images_folder = os.path.join(os.getcwd(), working_folder).lower()
+            images = glob.glob(('{}//*.*'.format(images_folder)))
 
 # Image Alignment
 if playground == 'Image Alignment':
