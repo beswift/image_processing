@@ -247,11 +247,12 @@ if playground == 'Image Alignment':
         def get_group_name(tuple):
             name = tuple[0]
             return name
+        confThresh = st.slider("select confidence Threshold:",0.0,2.0,0.05,0.01)
 
         groupies = st.radio("image set to montage:",groupy_options,format_func=get_group_name)
         stitch_trigger = st.button("Generate Montage")
         if stitch_trigger:
-            stitched = stitch_images(groupies[1],mode=mode)
+            stitched = stitch_images(groupies[1],mode=mode,confidenceThresh=confThresh)
             #st.write(stitched)
             #if stitched[0] == 0:
             st.image(stitched[1])
@@ -263,7 +264,9 @@ if playground == 'Image Alignment':
             image = cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)
             image_list.append(image)
             default_align_status.write("merge candidates: {}".format(len(image_list)))
-        stitchup = stitch_images(image_list, mode="neither")
+        stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
+        st.write(stitchup[0])
+        cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),stitchup[1])
         st.image(stitchup[1])
         default_align_status.write("default candidates merged... this is what images look like with minimal processing: ")
 
@@ -385,7 +388,7 @@ if playground == 'Image Processing':
         st.image(scaled_compare, caption="Scaled Comparison")
         st.image(scaled_merge, caption="scaled_output")
         save_scaled_img = st.button("save scaled image")
-        if save_base_img:
+        if save_scaled_img:
             cv2.imwrite("./optos_tiff/{}_scaled-merged.png".format(file_object.name),
                         cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
 
