@@ -72,6 +72,20 @@ if playground == 'Montage':
             images_folder = os.path.join(os.getcwd(), working_folder).lower()
             images = glob.glob(('{}//*.*'.format(images_folder)))
 
+    input_images = get_images(images,images_folder,image_source)
+    confThresh = st.slider("select confidence Threshold:", 0.0, 2.0, 0.05, 0.01)
+
+    st.write("Current images ready for processing: {} ".format(len(input_images)))
+    image_list = []
+    for image in input_images:
+        image = cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)
+        image_list.append(image)
+        st.write("merge candidates: {}".format(len(image_list)))
+    stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
+    st.write(stitchup[0])
+    cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),stitchup[1])
+    st.image(stitchup[1])
+    st.write("default candidates merged... this is what images look like with minimal processing: ")
 # Image Alignment
 if playground == 'Image Alignment':
     header = st.header('Image Alignment')
@@ -281,19 +295,6 @@ if playground == 'Image Alignment':
             #st.write(stitched)
             #if stitched[0] == 0:
             st.image(stitched[1])
-
-        default_align_status = st.empty()
-
-        image_list = []
-        for image in input_images:
-            image = cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)
-            image_list.append(image)
-            default_align_status.write("merge candidates: {}".format(len(image_list)))
-        stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
-        st.write(stitchup[0])
-        cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),stitchup[1])
-        st.image(stitchup[1])
-        default_align_status.write("default candidates merged... this is what images look like with minimal processing: ")
 
 
         # compare_images()
