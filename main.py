@@ -13,6 +13,7 @@ from tifffile import TiffFile
 import csv
 
 from feature_detectors import *
+from feature_detectors import display_expos_comp
 from Image_processors import *
 import pytesseract as ts
 from pytesseract import Output
@@ -241,7 +242,7 @@ if playground == 'Image Alignment':
                     b_clahe_img = eClahe.apply(b)
                     g_clahe_img = eClahe.apply(g)
                     r_clahe_img = eClahe.apply(r)
-                    eClahe_img = cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img))
+                    eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
                     eClahe_imgs.append(eClahe_img)
                 eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
                 eClahe_view = st.image(eClahe_overview)
@@ -286,7 +287,35 @@ if playground == 'Image Alignment':
         def get_group_name(tuple):
             name = tuple[0]
             return name
+
+        '''
+        –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3 
+        –ba ray –ba_refine_mask xxxxx –save_graph test.txt –wave_correct no –warp fisheye –blend multiband –expos_comp no 
+        –seam gc_colorgrad
+        
+        –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3 
+        –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp compressedPlaneA2B1 –blend multiband –expos_comp channels_blocks 
+        –seam gc_colorgrad
+        '''
+
+        st.write('stitcher properties')
         confThresh = st.slider("select confidence Threshold:",0.0,2.0,0.05,0.01)
+        work_megapix = st.slider("select work megapix:", 0.0, 2.0, 0.6, 0.01)
+        features = st.slider("select features:", 0.0, 2.0, 0.05, 0.01)
+        matcher = st.slider("select matcher:", 0.0, 2.0, 0.05, 0.01)
+        estimator = st.slider("select estimator:", 0.0, 2.0, 0.05, 0.01)
+        match_conf = st.slider("select match confidence:", 0.0, 2.0, 0.05, 0.01)
+        ba = st.slider("select ba:", 0.0, 2.0, 0.05, 0.01)
+        ba_refine_mask = st.slider("select ba refine:", 0.0, 2.0, 0.05, 0.01)
+        save_graph = st.slider("select save_graph:", 0.0, 2.0, 0.05, 0.01)
+        wave_correct = st.slider("select wave correct:", 0.0, 2.0, 0.05, 0.01)
+        warp = st.slider("select warp:", 0.0, 2.0, 0.05, 0.01)
+        blend = st.slider("select blend:", 0.0, 2.0, 0.05, 0.01)
+
+        expos_comp = st.selectbox("select expos_comp:", list(EXPOS_COMP_CHOICES),4,format_func=display_expos_comp)
+        seam = st.slider("select seam:", 0.0, 2.0, 0.05, 0.01)
+        rangewidth = st.slider("select range width",-1,4,-1,1)
+        gpu = st.radio("use gpu?:",[True,False],1)
 
         groupies = st.radio("image set to montage:",groupy_options,format_func=get_group_name)
         stitch_trigger = st.button("Generate Montage")
@@ -295,6 +324,11 @@ if playground == 'Image Alignment':
             #st.write(stitched)
             #if stitched[0] == 0:
             st.image(stitched[1])
+
+        adv_stitcher = st.button("Generate Advanced Montage")
+        if adv_stitcher:
+            matcher = get_matcher(gpu,matcher,match_conf,features,rangewidth)
+            ...
 
 
         # compare_images()
