@@ -1,0 +1,22 @@
+# image alignment
+testing out automated image alignment
+
+
+## Grab some fundus images and upload on the main page for super basic montaging:
+ - Error code 1 usually means your confidence is too low or you need more images - either way, you're lacking
+ - Error code 2 ?  this doesn't usually happen
+ - Error code 3 usually means you're over confident (it's actually a camera/morphing issue - the detailed_stitcher should help account for this too)
+ ![quick montage demo - https://video.drift.com/v/abqfhzLBKmq/](https://video.drift.com/v/abqfhzLBKmq/)
+
+
+## if the montage didn't work, or you want to play around more - head to the next tab:
+ - apply preprocessing filters:
+ ![quick demo- preprocess - https://video.drift.com/v/abSsXbXsKmq/](https://video.drift.com/v/abSsXbXsKmq/)
+ 
+## Grab some Sift Features for the fun of it:
+
+
+## Generate a montage:
+ - Use preprocess groups
+ - switch between affine and panorama modes
+ - Save image to disc
