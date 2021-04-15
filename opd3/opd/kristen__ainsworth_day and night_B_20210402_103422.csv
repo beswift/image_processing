@@ -1,0 +1,72 @@
+Date : 04/02/2021
+Patient ID : 003188,,,,DOB : 01/26/1973
+Patient Name : Ainsworth.  Kristen  
+Map No.1 : OPD
+ExamNo:1,Eye  :R,Exam Date :03/09/2021 15:50
+VD :  13.75mm
+Original,,,,3mm Zone,,,,,5mm Zone,,,,,Pupil,,,Offsets
+Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,STD,Sph,Cyl,Axis,RMS,STD,Hdec(mm),Vdec(mm),Ave(mm),(mm/deg)
+0.00  ,-1.50 ,  5, --- ,-0.25 ,-1.00 ,  1, 0.63, 0.73,-0.75 ,-0.25 ,168, 0.49, 0.52, --- , --- , --- ,  0.03,270,
+
+Map No.2 : OPD
+ExamNo:1,Eye  :L,Exam Date :03/09/2021 15:50
+VD :  13.75mm
+Original,,,,3mm Zone,,,,,5mm Zone,,,,,Pupil,,,Offsets
+Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,STD,Sph,Cyl,Axis,RMS,STD,Hdec(mm),Vdec(mm),Ave(mm),(mm/deg)
+-0.25 ,-0.50 ,179, --- ,-0.50 ,-0.50 ,180, 0.71, 0.76,-1.00 ,0.00  ,  0, 0.68, 0.68, 0.5O, 0.0U, 5.7,  0.06,  0,
+
+Map No.3 : Eye Image
+ExamNo:1,Eye  :R,Exam Date :03/09/2021 15:50
+Pupil Size,,MPDist,,PDist,,MDist,,Offsets,,,,WTW
+Photopic(mm),Mesopic(mm),(mm/deg),,(mm/deg),,(mm/deg),,Photopic(mm/deg),,Mesopic(mm/deg),,Photopic(mm),Mesopic(mm),Manual(mm)
+  5.03,---,---,---,  0.49,156,---,---,  0.07,153,  0.03,270,11.73,10.94,---,
+
+Map No.4 : Eye Image
+ExamNo:1,Eye  :L,Exam Date :03/09/2021 15:50
+Pupil Size,,MPDist,,PDist,,MDist,,Offsets,,,,WTW
+Photopic(mm),Mesopic(mm),(mm/deg),,(mm/deg),,(mm/deg),,Photopic(mm/deg),,Mesopic(mm/deg),,Photopic(mm),Mesopic(mm),Manual(mm)
+  4.51,  5.66,  0.08,250,  0.51, 11,  0.47,  3,  0.00,  0,  0.06,  0,11.60,11.62,---,
+
+Map No.5 : Wavefront HO (Cornea) Ref Text
+ExamNo:1,Eye  :R,Exam Date :03/09/2021 15:50
+Zone : 4.00mm
+Zone(OPD/Internal) : 4.00mm
+Order : 4
+VD :  13.75mm
+HOA[um],,,,,,,,,,,,Refraction,,,,,,,
+Total,,,,Cornea,,,,Internal,,,,REF,,,,WF@6.00,,,,Difference,,,,
+T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS
+0.01,0.16,0.26,0.32,0.04,0.16,0.14,0.22,0.05,0.02,0.14,0.19,+0.00,-1.50,5,,-0.25,-1.00,179,0.52,-0.25,+0.50,-6,
+
+Map No.6 : Wavefront HO (Cornea) Ref Text
+ExamNo:1,Eye  :L,Exam Date :03/09/2021 15:50
+Zone : 4.00mm
+Zone(OPD/Internal) : 4.00mm
+Order : 4
+VD :  13.75mm
+HOA[um],,,,,,,,,,,,Refraction,,,,,,,
+Total,,,,Cornea,,,,Internal,,,,REF,,,,WF@5.66,,,,Difference,,,,
+T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS
+0.06,0.18,0.25,0.32,0.02,0.08,0.12,0.18,0.04,0.11,0.30,0.34,-0.25,-0.50,179,,-0.50,-0.50,178,0.58,-0.25, 0.00,-1,
+
+Auto Ref/SimK.
+ExamNo:1,Eye  :L,Exam Date :03/09/2021 15:50
+VD :  13.75mm
+Sph,Cyl,Axis,
+-0.25 ,-0.50 ,179,
+
+SimK1(D/mm/deg),,,SimK2(D/mm/deg),,,dk(D/mm),,
+45.55, 7.41, 95,44.64, 7.56,  5,-0.91,+0.15,
+ExamNo:1,Eye  :R,Exam Date :03/09/2021 15:50
+VD :  13.75mm
+Sph,Cyl,Axis,
+0.00  ,-1.50 ,  5,
+
+SimK1(D/mm/deg),,,SimK2(D/mm/deg),,,dk(D/mm),,
+46.23, 7.30, 87,44.35, 7.61,177,-1.88,+0.31,
+
+Index Data Output
+Exam,SPH,CYL,AXIS,SimK Steep,SimK Flat,dK,e(Q),SA@6.0mm,Pupil
+1L, -0.25, -0.50,179,45.55( 7.41)@ 95,44.64( 7.56)@  5,-0.91(+0.15),-4.69(22.03),O+0.16  C -0.19  , 4.51   5.66
+1R, +0.00, -1.50,  5,46.23( 7.30)@ 87,44.35( 7.61)@177,-1.88(+0.31), 0.58(-0.34),O+0.02  C+0.12  , 5.03  ----
+Cornea Index: n=1.3375 (Ax Ins), n=1.3760 (Ref I.OPD)  Qm:6.0mm   

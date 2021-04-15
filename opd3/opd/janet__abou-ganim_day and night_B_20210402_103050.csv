@@ -1,0 +1,72 @@
+Date : 04/02/2021
+Patient ID : 000591,,,,DOB : 02/04/1964
+Patient Name : Abou-ganim.  Janet  
+Map No.1 : OPD
+ExamNo:3,Eye  :R,Exam Date :07/16/2020 15:32
+VD :  13.75mm
+Original,,,,3mm Zone,,,,,5mm Zone,,,,,Pupil,,,Offsets
+Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,STD,Sph,Cyl,Axis,RMS,STD,Hdec(mm),Vdec(mm),Ave(mm),(mm/deg)
+-10.00,0.00  ,  0, --- ,-10.50,0.00  ,  0, 0.14, 0.16,-12.75,0.00  ,  0, 0.28, 0.29, 0.1I, 0.0U, 6.4,  0.12, 14,
+
+Map No.2 : OPD
+ExamNo:3,Eye  :L,Exam Date :07/16/2020 15:32
+VD :  13.75mm
+Original,,,,3mm Zone,,,,,5mm Zone,,,,,Pupil,,,Offsets
+Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,STD,Sph,Cyl,Axis,RMS,STD,Hdec(mm),Vdec(mm),Ave(mm),(mm/deg)
+-10.25,-0.25 , 33, --- ,-11.00,0.00  ,  0, 0.22, 0.22,-12.50,-0.50 , 65, 0.30, 0.34, 0.0O, 0.1U, 5.9,  0.07,243,
+
+Map No.3 : Eye Image
+ExamNo:3,Eye  :R,Exam Date :07/16/2020 15:32
+Pupil Size,,MPDist,,PDist,,MDist,,Offsets,,,,WTW
+Photopic(mm),Mesopic(mm),(mm/deg),,(mm/deg),,(mm/deg),,Photopic(mm/deg),,Mesopic(mm/deg),,Photopic(mm),Mesopic(mm),Manual(mm)
+  4.51,  6.38,  0.07,250,  0.15, 40,  0.10, 20,  0.06, 90,  0.12, 14,12.05,12.14,---,
+
+Map No.4 : Eye Image
+ExamNo:3,Eye  :L,Exam Date :07/16/2020 15:32
+Pupil Size,,MPDist,,PDist,,MDist,,Offsets,,,,WTW
+Photopic(mm),Mesopic(mm),(mm/deg),,(mm/deg),,(mm/deg),,Photopic(mm/deg),,Mesopic(mm/deg),,Photopic(mm),Mesopic(mm),Manual(mm)
+  3.94,  5.87,  0.09,359,  0.08,125,  0.08, 53,  0.13, 27,  0.07,243,12.09,12.10,---,
+
+Map No.5 : Wavefront HO (Cornea) Ref Text
+ExamNo:3,Eye  :R,Exam Date :07/16/2020 15:32
+Zone : 4.00mm
+Zone(OPD/Internal) : 4.00mm
+Order : 4
+VD :  13.75mm
+HOA[um],,,,,,,,,,,,Refraction,,,,,,,
+Total,,,,Cornea,,,,Internal,,,,WF@4.00,,,,WF@6.00,,,,Difference,,,,
+T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS
+0.10,0.02,0.11,0.16,0.11,0.09,0.05,0.15,0.01,0.08,0.09,0.14,-10.25,-0.00,0,0.17,-11.50,-0.00,0,0.60,-1.25, 0.00,---,
+
+Map No.6 : Wavefront HO (Cornea) Ref Text
+ExamNo:3,Eye  :L,Exam Date :07/16/2020 15:32
+Zone : 4.00mm
+Zone(OPD/Internal) : 4.00mm
+Order : 4
+VD :  13.75mm
+HOA[um],,,,,,,,,,,,Refraction,,,,,,,
+Total,,,,Cornea,,,,Internal,,,,WF@4.00,,,,WF@5.87,,,,Difference,,,,
+T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,T.Sph,T.Coma,T.Tre,HO,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS,Sph,Cyl,Axis,RMS
+0.13,0.05,0.07,0.16,0.19,0.07,0.07,0.22,0.06,0.10,0.05,0.15,-10.75,-0.50,34,0.16,-11.75,-0.50,50,0.46,-1.00, 0.00,16,
+
+Auto Ref/SimK.
+ExamNo:3,Eye  :L,Exam Date :07/16/2020 15:32
+VD :  13.75mm
+Sph,Cyl,Axis,
+-10.25,-0.25 , 33,
+
+SimK1(D/mm/deg),,,SimK2(D/mm/deg),,,dk(D/mm),,
+48.28, 6.99, 88,47.07, 7.17,178,-1.21,+0.18,
+ExamNo:3,Eye  :R,Exam Date :07/16/2020 15:32
+VD :  13.75mm
+Sph,Cyl,Axis,
+-10.00,0.00  ,  0,
+
+SimK1(D/mm/deg),,,SimK2(D/mm/deg),,,dk(D/mm),,
+47.94, 7.04, 75,46.75, 7.22,165,-1.19,+0.18,
+
+Index Data Output
+Exam,SPH,CYL,AXIS,SimK Steep,SimK Flat,dK,e(Q),SA@6.0mm,Pupil
+3L,-10.25, -0.25, 33,48.28( 6.99)@ 88,47.07( 7.17)@178,-1.21(+0.18), 0.31(-0.10),O+0.45  C+0.59  , 3.94   5.87
+3R,-10.00,  0.00,  0,47.94( 7.04)@ 75,46.75( 7.22)@165,-1.19(+0.18),-0.43( 0.18),O+0.55  C+0.70  , 4.51   6.38
+Cornea Index: n=1.3375 (Ax Ins), n=1.3760 (Ref I.OPD)  Qm:6.0mm   
