@@ -166,3 +166,12 @@ def pre_stitch(image):
     #st.image(able)
     return able
 
+def enhance_image(image,clipLimit,tileGridSize):
+    b, g, r = cv2.split(image)
+    clahe = cv2.createCLAHE(clipLimit=clipLimit, tileGridSize=tileGridSize)
+    clahe_b = clahe.apply(b)
+    clahe_g = clahe.apply(g)
+    clahe_r = clahe.apply(r)
+    able = cv2.merge((clahe_r, clahe_g, clahe_b))
+    # st.image(able)
+    return able

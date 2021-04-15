@@ -60,6 +60,8 @@ if playground == 'Montage':
         ### Choose image source:
         '''
         image_source = st.radio('', ["File Uploader", "Pick Folder"])
+        clear_images = st.button('Clear Image Cache')
+
 
     with result_col:
         '''
@@ -74,19 +76,24 @@ if playground == 'Montage':
             images = glob.glob(('{}//*.*'.format(images_folder)))
 
     input_images = get_images(images,images_folder,image_source)
+    if clear_images:
+        input_images = []
     confThresh = st.slider("select confidence Threshold:", 0.0, 2.0, 0.05, 0.01)
 
     st.write("Current images ready for processing: {} ".format(len(input_images)))
-    image_list = []
-    for image in input_images:
-        image = cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)
-        image_list.append(image)
-        st.write("merge candidates: {}".format(len(image_list)))
-    stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
-    st.write(stitchup[0])
-    cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),stitchup[1])
-    st.image(stitchup[1])
-    st.write("default candidates merged... this is what images look like with minimal processing: ")
+
+    if input_images:
+        image_list = []
+        for image in input_images:
+            image =circle_mask((cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)))
+            image_list.append(image)
+            st.write("merge candidates: {}".format(len(image_list)))
+        stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
+        st.write(stitchup[0])
+        if stitchup[0] == 0:
+            cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),cv2.cvtColor(stitchup[1],cv2.COLOR_RGB2BGR))
+        st.image(stitchup[1])
+        st.write("default candidates merged... this is what images look like with minimal processing: ")
 # Image Alignment
 if playground == 'Image Alignment':
     header = st.header('Image Alignment')
@@ -155,10 +162,10 @@ if playground == 'Image Alignment':
     input_images = get_images(images,images_folder,image_source)
 
     ic_status_text.write("Current images ready for processing: {} ".format(len(input_images)))
-
-    '''
-    ## Pre Process Images
-    '''
+    if images:
+        '''
+        ## ** Step 2. ** Pre Process Images
+        '''
 
     if len(images) > 0:
         Image.MAX_IMAGE_PIXELS = 933120000
@@ -192,7 +199,7 @@ if playground == 'Image Alignment':
 
             sift_view = st.empty()
 
-
+            st.cache()
             if "none" in view_options:
                 base_imgs = []
                 for image in input_images:
@@ -262,9 +269,11 @@ if playground == 'Image Alignment':
             if "sift" in view_options:
                 #image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]
                 sift_images = []
+                kp_desc = []
                 for image in input_images:
                     sift_image,kps,descs = sift_features(image[0])
                     sift_images.append(sift_image)
+                    kp_desc.append((kps,descs))
                 sift_overview = np.concatenate(sift_images, axis=1)
                 sift_view = st.image(sift_overview)
 
@@ -272,75 +281,123 @@ if playground == 'Image Alignment':
             '''
             '''
             keypoints_status = st.empty()
+            if "sift" in view_options:
+                st.write(kp_desc)
 
         default_groupies = []
         for image in input_images:
             image = pre_stitch(image[0])
             default_groupies.append(image)
 
-        groupy_options = []
+        # Montage time
+        if default_groupies:
+            '''
+            ## ** Step 3. ** Montage
+            '''
+        montage_container = st.beta_container()
 
-        groupy_options.append(('default_groupies',default_groupies))
+        with montage_container:
+            settings_col,sp, montage_col = st.beta_columns((1,.1,2))
 
-        if "base" in view_options:
-            groupy_options.append(('base',base_imgs))
-        if 'mask' in view_options:
-            groupy_options.append(('masked',masked_imgs))
-        if 'grey' in view_options:
-            groupy_options.append(('grey',grey_imgs))
-        if 'clahe' in view_options:
-            groupy_options.append(('clahe',clahe_imgs))
-        if 'eClahe' in view_options:
-            groupy_options.append(('eClahe', eClahe_imgs))
+        with montage_col:
+            montage_button = st.empty()
+            montage_image = st.empty()
+            montage_status = st.empty()
+            montage_save = st.empty()
+            montage_enhance = st.empty()
+            adv_montage_button = st.empty()
+            adv_montage_image = st.empty()
+            adv_montage_status = st.empty()
 
 
-        modes = ["panorama","affine","neither"]
-        mode = st.radio("mode:",modes )
-        def get_group_name(tuple):
-            name = tuple[0]
-            return name
+        with settings_col:
 
-        '''
-        –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3 
-        –ba ray –ba_refine_mask xxxxx –save_graph test.txt –wave_correct no –warp fisheye –blend multiband –expos_comp no 
-        –seam gc_colorgrad
+            # create group of images to be montaged
+            groupy_options = []
+
+            groupy_options.append(('default_groupies',default_groupies))
+
+            if "base" in view_options:
+                groupy_options.append(('base',base_imgs))
+            if 'mask' in view_options:
+                groupy_options.append(('masked',masked_imgs))
+            if 'grey' in view_options:
+                groupy_options.append(('grey',grey_imgs))
+            if 'clahe' in view_options:
+                groupy_options.append(('clahe',clahe_imgs))
+            if 'eClahe' in view_options:
+                groupy_options.append(('eClahe', eClahe_imgs))
+
+            def get_group_name(tuple):
+                name = tuple[0]
+                return name
+
+
+       #–work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3
+       #–ba ray –ba_refine_mask xxxxx –save_graph test.txt –wave_correct no –warp fisheye –blend multiband –expos_comp no
+       #–seam gc_colorgrad
         
-        –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3 
-        –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp compressedPlaneA2B1 –blend multiband –expos_comp channels_blocks 
-        –seam gc_colorgrad
-        '''
+       # –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3
+       # –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp compressedPlaneA2B1 –blend multiband –expos_comp channels_blocks
+       #  –seam gc_colorgrad
+            groupies = st.radio("image set to montage:", groupy_options, format_func=get_group_name)
+            modes = ["panorama","affine","neither"]
+            mode = st.radio("mode to use:",modes )
 
-        st.write('stitcher properties')
-        confThresh = st.slider("select confidence Threshold:",0.0,2.0,0.05,0.01)
-        work_megapix = st.slider("select work megapix:", 0.0, 2.0, 0.6, 0.01)
-        features = st.slider("select features:", 0.0, 2.0, 0.05, 0.01)
-        matcher = st.slider("select matcher:", 0.0, 2.0, 0.05, 0.01)
-        estimator = st.slider("select estimator:", 0.0, 2.0, 0.05, 0.01)
-        match_conf = st.slider("select match confidence:", 0.0, 2.0, 0.05, 0.01)
-        ba = st.slider("select ba:", 0.0, 2.0, 0.05, 0.01)
-        ba_refine_mask = st.slider("select ba refine:", 0.0, 2.0, 0.05, 0.01)
-        save_graph = st.slider("select save_graph:", 0.0, 2.0, 0.05, 0.01)
-        wave_correct = st.slider("select wave correct:", 0.0, 2.0, 0.05, 0.01)
-        warp = st.slider("select warp:", 0.0, 2.0, 0.05, 0.01)
-        blend = st.slider("select blend:", 0.0, 2.0, 0.05, 0.01)
 
-        expos_comp = st.selectbox("select expos_comp:", list(EXPOS_COMP_CHOICES),4,format_func=display_expos_comp)
-        seam = st.slider("select seam:", 0.0, 2.0, 0.05, 0.01)
-        rangewidth = st.slider("select range width",-1,4,-1,1)
-        gpu = st.radio("use gpu?:",[True,False],1)
+            st.write('stitcher properties')
+            confThresh = st.slider("select confidence Threshold:",0.0,2.0,0.05,0.01)
+            work_megapix = st.slider("select work megapix:", 0.0, 2.0, 0.6, 0.01)
+            features = st.slider("select features:", 0.0, 2.0, 0.05, 0.01)
+            #matcher = st.slider("select matcher:", 0.0, 2.0, 0.05, 0.01)
+            estimator = st.slider("select estimator:", 0.0, 2.0, 0.05, 0.01)
+            match_conf = st.slider("select match confidence:", 0.0, 2.0, 0.05, 0.01)
+            ba = st.slider("select ba:", 0.0, 2.0, 0.05, 0.01)
+            ba_refine_mask = st.slider("select ba refine:", 0.0, 2.0, 0.05, 0.01)
+            save_graph = st.slider("select save_graph:", 0.0, 2.0, 0.05, 0.01)
+            wave_correct = st.slider("select wave correct:", 0.0, 2.0, 0.05, 0.01)
+            warp = st.slider("select warp:", 0.0, 2.0, 0.05, 0.01)
+            blend = st.slider("select blend:", 0.0, 2.0, 0.05, 0.01)
 
-        groupies = st.radio("image set to montage:",groupy_options,format_func=get_group_name)
-        stitch_trigger = st.button("Generate Montage")
-        if stitch_trigger:
-            stitched = stitch_images(groupies[1],mode=mode,confidenceThresh=confThresh)
-            #st.write(stitched)
-            #if stitched[0] == 0:
-            st.image(stitched[1])
+            st.write("Compensator settings:")
+            expos_comp = st.selectbox("select expos_comp:", list(EXPOS_COMP_CHOICES),4,format_func=display_expos_comp)
+            expos_comp_nr_feeds = st.slider("compensation feeds",0,3,1,1)
+            expos_comp_block_size = st.slider("compensation block size, 0,4,2,1")
+            st.write(expos_comp)
 
-        adv_stitcher = st.button("Generate Advanced Montage")
-        if adv_stitcher:
-            matcher = get_matcher(gpu,matcher,match_conf,features,rangewidth)
-            ...
+            seam = st.slider("select seam:", 0.0, 2.0, 0.05, 0.01)
+            rangewidth = st.slider("select range width",-1,4,-1,1)
+            gpu = st.radio("use gpu?:",[True,False],1)
+
+
+        with montage_col:
+            montage_button = st.button("Generate Montage")
+
+            if montage_button:
+                status,stitched = stitch_images(groupies[1],mode=mode,confidenceThresh=confThresh)
+                montage_status = st.write(status)
+                if status == 0:
+                    montage_status = st.write("Success! status:{}".format(status))
+                    montage_image = st.image(stitched)
+                    montage_save = st.button("save Image?")
+                    if montage_save:
+                        cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())), cv2.cvtColor(stitchup[1], cv2.COLOR_RGB2BGR))
+                    montage_enhance = st.button("Enhance Montage")
+                    mclahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
+                    mgrids = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (8, 8)]
+                    mclahe_grid = st.select_slider("clahe grid", mgrids)
+                    if montage_enhance:
+                        enhanced = enhance_image(stitched,mclahe_clip,mclahe_grid)
+                        montage_image = st.image(enhanced)
+
+
+
+
+            adv_stitcher = st.button("Generate Advanced Montage")
+            if adv_stitcher:
+                matcher = get_matcher(gpu,mode,match_conf,features,rangewidth)
+                st.write(matcher)
+                ...
 
 
         # compare_images()
