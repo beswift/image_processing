@@ -11,7 +11,8 @@ testing out automated image alignment
 
 ## if the montage didn't work, or you want to play around more - head to the next tab:
  - apply preprocessing filters:
- ![](https://public-media.driftvideo.com/videos-gifs/DRIFT-VIDEO-2412412-2491228-1618471361.gif)
+  
+  ![https://video.drift.com/v/abSsXbXsKmq/](https://public-media.driftvideo.com/videos-gifs/DRIFT-VIDEO-2412412-2491228-1618471361.gif)
  
 ## Grab some Sift Features for the fun of it:
 
