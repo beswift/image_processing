@@ -31,6 +31,7 @@ def get_harris_corners(image, filename):
 
 
 # Sift detection
+@st.cache(suppress_st_warning=True, allow_output_mutation=True)
 def sift_features(image):
     masked = circle_mask(image)
     gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
@@ -122,7 +123,10 @@ FEATURES_FIND_CHOICES['orb'] = cv2.ORB.create
 try:
     FEATURES_FIND_CHOICES['sift'] = cv2.xfeatures2d_SIFT.create
 except AttributeError:
-    print("SIFT not available")
+    try:
+        FEATURES_FIND_CHOICES['sift'] = cv2.SIFT_create
+    except AttributeError:
+        print("SIFT not available")
 try:
     FEATURES_FIND_CHOICES['brisk'] = cv2.BRISK_create
 except AttributeError:
