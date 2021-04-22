@@ -1,0 +1,3 @@
+tasks:
+  - init: streamlit run main.py
+    command: streamlit run main.py
