@@ -10,10 +10,6 @@
 
 FROM continuumio/miniconda3
 
-# [Option] Install zsh
-ARG INSTALL_ZSH="true"
-# [Option] Upgrade OS packages to their latest versions
-ARG UPGRADE_PACKAGES="true"
 
 # Install basic stuff
 RUN apt-get update && \
@@ -70,7 +66,7 @@ COPY environment_1.yml .
     #conda clean -tipy
 
 RUN conda env create -f environment_1.yml
-RUN conda activate img_base
+
 # COPY requirements.txt ./requirements.txt
 
 # Make RUN commands use the new environment:
@@ -101,6 +97,6 @@ COPY . .
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "img_base"]
 
 # just run streamlit
-#CMD ["streamlit", "run","main.py"]
+CMD ["streamlit", "run","main.py"]
 
 
