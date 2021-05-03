@@ -1,0 +1,17 @@
+name: img_base
+channels:
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pyarrow
+  - pandas
+  - streamlit
+  - scikit-learn
+  - pandas-profiling
+  - poppler
+  - scikit-image
+  - pytesseract
+  - pdf2image
+  - pip:
+    - opencv-contrib-python-headless
+prefix: /opt/homebrew/Caskroom/miniforge/base/envs/img_base

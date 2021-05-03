@@ -22,7 +22,7 @@ from io import BytesIO
 from PIL import Image
 import tifffile
 from skimage import exposure
-
+Image.MAX_IMAGE_PIXELS = 15486240000
 # Sidebar Section
 st.sidebar.write('''
 # Image processing playground
