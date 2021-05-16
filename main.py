@@ -243,28 +243,32 @@ if playground == 'Image Alignment':
                 tgrids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
                 eClahe_grid= st.select_slider("clahe grid", tgrids)
                 eClahe_imgs = []
-                if masked_imgs:
-                    for image in masked_imgs:
-                        eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
-                        r,g,b = cv2.split(image)
-                        b_clahe_img = eClahe.apply(b)
-                        g_clahe_img = eClahe.apply(g)
-                        r_clahe_img = eClahe.apply(r)
-                        eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
-                        eClahe_imgs.append(eClahe_img)
-                    eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
-                    eClahe_view = st.image(eClahe_overview)
-                else:
-                    for image in input_images:
-                        eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
-                        b,g,r = cv2.split(image[0])
-                        b_clahe_img = eClahe.apply(b)
-                        g_clahe_img = eClahe.apply(g)
-                        r_clahe_img = eClahe.apply(r)
-                        eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
-                        eClahe_imgs.append(eClahe_img)
-                    eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
-                    eClahe_view = st.image(eClahe_overview)
+                try:
+                    if masked_imgs:
+                        for image in masked_imgs:
+                            eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
+                            r,g,b = cv2.split(image)
+                            b_clahe_img = eClahe.apply(b)
+                            g_clahe_img = eClahe.apply(g)
+                            r_clahe_img = eClahe.apply(r)
+                            eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
+                            eClahe_imgs.append(eClahe_img)
+                        eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
+                        eClahe_view = st.image(eClahe_overview)
+                except:
+
+                    enhanced = enhance_nMask_group(input_images,rc=eClahe_clip,rt=eClahe_grid)
+                    st.image(enhanced)
+                    # for image in input_images:
+                        #eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
+                       # b,g,r = cv2.split(image[0])
+                        #b_clahe_img = eClahe.apply(b)
+                       #g_clahe_img = eClahe.apply(g)
+                        #r_clahe_img = eClahe.apply(r)
+                        #eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
+                        #eClahe_imgs.append(eClahe_img)
+                    #eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
+                   # eClahe_view = st.image(eClahe_overview)
 
             if "sift" in view_options:
                 #image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]

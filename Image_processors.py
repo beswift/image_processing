@@ -21,7 +21,7 @@ def get_fundus_mask(img):
     # Return result
     return erode_img
 
-
+@st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def circle_mask(image):
     mask = np.zeros(image.shape[:2], dtype="uint8")
     centerx = int((image.shape[1])/2)
@@ -154,6 +154,41 @@ def get_images(imageList,images_folder,image_source):
             imageIn = np.array(imageIn)
             outputList.append((imageIn,filename))
     return outputList
+
+def createCLAHE(Clahe_clip, TileGrildside):
+    Clahe = cv2.createCLAHE(clipLimit=Clahe_clip,tileGridSize=TileGrildside)
+    return Clahe
+
+
+def clahe(clahe,img):
+    img = clahe.apply(img)
+    return img
+
+def eclahe(img,rc=1.0,rt=(8,8),gc=1.0,gt=(8,8),bc=1.0,bt=(8,8)):
+    b,g,r = cv2.split(img)
+    b_clahe = createCLAHE(bc,bt)
+    b_clahe_img = clahe(b_clahe,b)
+    g_clahe = createCLAHE(gc,gt)
+    g_clahe_img = clahe(g_clahe,g)
+    r_clahe = createCLAHE(rc,rt)
+    r_clahe_img = clahe(r_clahe,r)
+    eclahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
+    return eclahe_img
+
+def enhance_nMask_group(imglist,rc=1.0,rt=(8,8),gc=1.0,gt=(8,8),bc=1.0,bt=(8,8)):
+    enhanced_images = []
+    for img in imglist:
+        masked = circle_mask(img[0])
+        clahe = eclahe(masked,rc,rt,gc,gt,bc,bt)
+        enhanced_images.append(clahe)
+    enhanced_overview = np.concatenate(enhanced_images,axis=1)
+    return enhanced_overview
+
+
+
+
+
+
 
 def pre_stitch(image):
     masked = circle_mask(image)
