@@ -28,7 +28,7 @@ st.sidebar.write('''
 # Image processing playground
 ''')
 st.sidebar.subheader("Pick an area to explore")
-playground = st.sidebar.radio("Playgrounds", ['Montage','Image Alignment', 'Image Processing', 'OCR',"scratch"])
+playground = st.sidebar.radio("Playgrounds", ['Montage','Image Alignment', 'Image Processing', 'OCR','Tagging',"scratch"])
 
 # header section
 header = st.empty()
@@ -672,6 +672,12 @@ if playground == 'OCR':
             (x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
             cv2.rectangle(pre_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
         st.image(pre_img)
+
+# Tagging
+
+if playground == 'Tagging':
+    st.header("Tag Tracking")
+
 
 if playground == "scratch":
     st.header("test area")

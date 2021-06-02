@@ -255,8 +255,8 @@ dependencies:
     - sentencepiece==0.1.94
     - slugify==0.0.1
     - smmap==3.0.4
-    - st-execbox==1.0.0
-    - streamlit==0.70.0
+    # - st-execbox==1.0.0
+    - streamlit==0.82.0
     - streamlit-ace==0.0.4
     - streamlit-drawable-canvas==0.5.1
     - tabulate==0.8.7
