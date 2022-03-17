@@ -2,7 +2,7 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="Python 3.8 (imaging)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.9 (image_processing_tf_39)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Alignment Function" />
     <orderEntry type="module" module-name="UIaEYE" />

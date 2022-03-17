@@ -1,4 +1,5 @@
 import io
+import traceback
 from datetime import datetime
 from helpers import parse_opd3_csv
 
@@ -50,10 +51,10 @@ def files_uploader(function_name):
 # Quick Montage
 if playground == 'Montage':
     header = st.header('Quick Montage')
-    file_container = st.beta_container()
+    file_container = st.container()
 
     with file_container:
-        info_col, space_col, result_col = st.beta_columns((2, .5, 4))
+        info_col, space_col, result_col = st.columns((2, .5, 4))
 
     with info_col:
         '''
@@ -84,16 +85,21 @@ if playground == 'Montage':
 
     if input_images:
         image_list = []
+        perfect = 0
+        more = 1
+        less = 3
         for image in input_images:
             image =circle_mask((cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)))
             image_list.append(image)
             st.write("merge candidates: {}".format(len(image_list)))
         stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
-        st.write(stitchup[0])
-        if stitchup[0] == 0:
-            cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),cv2.cvtColor(stitchup[1],cv2.COLOR_RGB2BGR))
-        st.image(stitchup[1])
-        st.write("default candidates merged... this is what images look like with minimal processing: ")
+        if stitchup[0] == perfect:
+            cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),
+                        cv2.cvtColor(stitchup[1], cv2.COLOR_RGB2BGR))
+            st.image(stitchup[1])
+            st.write("default candidates merged... this is what images look like with minimal processing: ")
+    else:
+        st.write("No images to process")
 # Image Alignment
 if playground == 'Image Alignment':
     header = st.header('Image Alignment')
@@ -118,10 +124,10 @@ if playground == 'Image Alignment':
     '''
     ##  **Step 1.** Convert Images to a standard object
     '''
-    file_container = st.beta_container()
+    file_container = st.container()
 
     with file_container:
-        info_col, space_col, result_col = st.beta_columns((2, .5, 4))
+        info_col, space_col, result_col = st.columns((2, .5, 4))
 
     with info_col:
         '''
@@ -142,10 +148,10 @@ if playground == 'Image Alignment':
             images_folder = os.path.join(os.getcwd(), working_folder).lower()
             images = glob.glob(('{}//*.*'.format(images_folder)))
 
-    image_container = st.beta_container()
+    image_container = st.container()
 
     with image_container:
-        ic_rbar, ic_status, ir_lbar = st.beta_columns((1,3,1))
+        ic_rbar, ic_status, ir_lbar = st.columns((1,3,1))
 
     with ic_rbar:
         '''
@@ -163,19 +169,20 @@ if playground == 'Image Alignment':
 
     ic_status_text.write("Current images ready for processing: {} ".format(len(input_images)))
     if images:
+        Image.MAX_IMAGE_PIXELS = 933120000
         '''
         ## ** Step 2. ** Pre Process Images
         '''
 
-    if len(images) > 0:
-        Image.MAX_IMAGE_PIXELS = 933120000
+    if len(images) > 1:
 
-        compare_input_container = st.beta_container()
+
+        compare_input_container = st.container()
 
         with compare_input_container:
-            r_info_col, compare_viewer_col, l_info_col = st.beta_columns((2,5,2))
+            l_info_col, compare_viewer_col, r_info_col = st.columns((2,5,2))
 
-        with r_info_col:
+        with l_info_col:
             '''
             '''
             view_options = st.multiselect("apply:",["none","mask","grey","clahe","eClahe","sift"])
@@ -199,7 +206,7 @@ if playground == 'Image Alignment':
 
             sift_view = st.empty()
 
-            st.cache()
+
             if "none" in view_options:
                 base_imgs = []
                 for image in input_images:
@@ -226,12 +233,19 @@ if playground == 'Image Alignment':
                 grey_view = st.image(grey_overview)
 
             if "clahe" in view_options:
-                clahe_clip = st.slider("clip limit",0.0,10.0,1.8,.1)
+                if not "clahe_clip" in st.session_state:
+                    st.session_state.clahe_clip = 1.0
+                if not "clahe_grid" in st.session_state:
+                    st.session_state.clahe_grid = (3,3)
+                clahe_clip = st.slider("clip limit",0.0,10.0,1.8)
+                st.session_state.clahe_clip = clahe_clip
                 grids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
-                clahe_grid = st.select_slider("clahe grid",grids)
+                st.write(grids[1])
+                clahe_grid = st.selectbox("clahe grid",grids)
+                st.session_state.clahe_grid = clahe_grid
                 clahe_imgs = []
                 for image in input_images:
-                    clahe = cv2.createCLAHE(clipLimit=clahe_clip, tileGridSize=clahe_grid)
+                    clahe = cv2.createCLAHE(clipLimit=st.session_state.clahe_clip, tileGridSize=st.session_state.clahe_grid)
                     g = cv2.cvtColor(image[0],cv2.COLOR_BGR2GRAY)
                     clahe_img = clahe.apply(g)
                     clahe_imgs.append(clahe_img)
@@ -239,14 +253,21 @@ if playground == 'Image Alignment':
                 clahe_view = st.image(clahe_overview)
 
             if "eClahe" in view_options:
+                if not "eclahe_clip" in st.session_state:
+                    st.session_state.eclahe_clip = 1.0
+                if not "eclahe_grid" in st.session_state:
+                    st.session_state.eclahe_grid = (3,3)
                 eClahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
-                tgrids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
-                eClahe_grid= st.select_slider("clahe grid", tgrids)
+                st.session_state.eclahe_clip = eClahe_clip
+                egrids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
+                #eClahe_grid = st.select_slider("eclahe grid",egrids)
+                eClahe_grid= st.selectbox("eclahe grid", [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)])
+                st.session_state.eclahe_grid = eClahe_grid
                 eClahe_imgs = []
                 try:
                     if masked_imgs:
                         for image in masked_imgs:
-                            eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
+                            eClahe = cv2.createCLAHE(clipLimit=st.session_state.eclahe_clip, tileGridSize=st.session_state.eclahe_grid)
                             r,g,b = cv2.split(image)
                             b_clahe_img = eClahe.apply(b)
                             g_clahe_img = eClahe.apply(g)
@@ -255,10 +276,12 @@ if playground == 'Image Alignment':
                             eClahe_imgs.append(eClahe_img)
                         eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
                         eClahe_view = st.image(eClahe_overview)
+                        enhanced = enhance_nMask_group(input_images, rc=eClahe_clip, rt=st.session_state.eclahe_grid)
+                        st.image(enhanced)
                 except:
+                    st.write(f'issue displaying eclahe')
+                    print(traceback.format_exc())
 
-                    enhanced = enhance_nMask_group(input_images,rc=eClahe_clip,rt=eClahe_grid)
-                    st.image(enhanced)
                     # for image in input_images:
                         #eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
                        # b,g,r = cv2.split(image[0])
@@ -281,27 +304,28 @@ if playground == 'Image Alignment':
                 sift_overview = np.concatenate(sift_images, axis=1)
                 sift_view = st.image(sift_overview)
 
-        with l_info_col:
-            '''
-            '''
-            keypoints_status = st.empty()
-            if "sift" in view_options:
-                st.write(kp_desc)
+                with l_info_col:
+                    '''
+                    '''
+                    keypoints_status = st.empty()
+                    if "sift" in view_options:
+                        st.write(kp_desc)
 
         default_groupies = []
         for image in input_images:
             image = pre_stitch(image[0])
             default_groupies.append(image)
+        st.write(default_groupies)
 
         # Montage time
         if default_groupies:
             '''
             ## ** Step 3. ** Montage
             '''
-        montage_container = st.beta_container()
+        montage_container = st.container()
 
         with montage_container:
-            settings_col,sp, montage_col = st.beta_columns((1,.1,2))
+            settings_col, sp, montage_col = st.columns((1, .1, 2))
 
         with montage_col:
             montage_button = st.empty()
@@ -313,47 +337,49 @@ if playground == 'Image Alignment':
             adv_montage_image = st.empty()
             adv_montage_status = st.empty()
 
-
         with settings_col:
-
             # create group of images to be montaged
             groupy_options = []
+            if not 'groupy_options' in st.session_state:
+                st.session_state.groupy_options = default_groupies
+            st.session_state.groupy_options = default_groupies
 
-            groupy_options.append(('default_groupies',default_groupies))
+            #groupy_options.append(('default_groupies', default_groupies))
 
-            if "base" in view_options:
-                groupy_options.append(('base',base_imgs))
+            if "none" in view_options:
+                groupy_options.append(('none', base_imgs))
             if 'mask' in view_options:
-                groupy_options.append(('masked',masked_imgs))
+                groupy_options.append(('masked', masked_imgs))
             if 'grey' in view_options:
-                groupy_options.append(('grey',grey_imgs))
+                groupy_options.append(('grey', grey_imgs))
             if 'clahe' in view_options:
-                groupy_options.append(('clahe',clahe_imgs))
+                groupy_options.append(('clahe', clahe_imgs))
             if 'eClahe' in view_options:
                 groupy_options.append(('eClahe', eClahe_imgs))
+
 
             def get_group_name(tuple):
                 name = tuple[0]
                 return name
 
 
-       #–work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3
-       #–ba ray –ba_refine_mask xxxxx –save_graph test.txt –wave_correct no –warp fisheye –blend multiband –expos_comp no
-       #–seam gc_colorgrad
-        
-       # –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3
-       # –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp compressedPlaneA2B1 –blend multiband –expos_comp channels_blocks
-       #  –seam gc_colorgrad
-            groupies = st.radio("image set to montage:", groupy_options, format_func=get_group_name)
-            modes = ["panorama","affine","neither"]
-            mode = st.radio("mode to use:",modes )
+            # –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3
+            # –ba ray –ba_refine_mask xxxxx –save_graph test.txt –wave_correct no –warp fisheye –blend multiband –expos_comp no
+            # –seam gc_colorgrad
 
+            # –work_megapix 0.6 –features orb –matcher homography –estimator homography –match_conf 0.3 –conf_thresh 0.3
+            # –ba ray –ba_refine_mask xxxxx –wave_correct horiz –warp compressedPlaneA2B1 –blend multiband –expos_comp channels_blocks
+            #  –seam gc_colorgrad
+            #st.write(groupy_options)
+            groupies = st.selectbox("image set to montage:", groupy_options ,format_func=get_group_name)
+            modes = ["panorama", "affine", "neither"]
+            mode = st.radio("mode to use:", modes)
 
             st.write('stitcher properties')
-            confThresh = st.slider("select confidence Threshold:",0.0,2.0,0.05,0.01)
+            confThresh = st.slider("select confidence Threshold:", 0.0, 2.0, 0.05, 0.01)
             work_megapix = st.slider("select work megapix:", 0.0, 2.0, 0.6, 0.01)
             features = st.slider("select features:", 0.0, 2.0, 0.05, 0.01)
-            #matcher = st.slider("select matcher:", 0.0, 2.0, 0.05, 0.01)
+            # matcher = st.slider("select matcher:", 0.0, 2.0, 0.05, 0.01)
             estimator = st.slider("select estimator:", 0.0, 2.0, 0.05, 0.01)
             match_conf = st.slider("select match confidence:", 0.0, 2.0, 0.05, 0.01)
             ba = st.slider("select ba:", 0.0, 2.0, 0.05, 0.01)
@@ -364,47 +390,47 @@ if playground == 'Image Alignment':
             blend = st.slider("select blend:", 0.0, 2.0, 0.05, 0.01)
 
             st.write("Compensator settings:")
-            expos_comp = st.selectbox("select expos_comp:", list(EXPOS_COMP_CHOICES),4,format_func=display_expos_comp)
-            expos_comp_nr_feeds = st.slider("compensation feeds",0,3,1,1)
+            expos_comp = st.selectbox("select expos_comp:", list(EXPOS_COMP_CHOICES), 4, format_func=display_expos_comp)
+            expos_comp_nr_feeds = st.slider("compensation feeds", 0, 3, 1, 1)
             expos_comp_block_size = st.slider("compensation block size, 0,4,2,1")
             st.write(expos_comp)
 
             seam = st.slider("select seam:", 0.0, 2.0, 0.05, 0.01)
-            rangewidth = st.slider("select range width",-1,4,-1,1)
-            gpu = st.radio("use gpu?:",[True,False],1)
+            rangewidth = st.slider("select range width", -1, 4, -1, 1)
+            gpu = st.radio("use gpu?:", [True, False], 1)
 
+            with montage_col:
+                montage_button = st.button("Generate Montage")
 
-        with montage_col:
-            montage_button = st.button("Generate Montage")
+                if montage_button:
+                    st.write(groupies)
+                    status, stitched = stitch_images(groupies[1], mode=mode, confidenceThresh=confThresh)
+                    montage_status = st.write(status)
+                    if status == 0:
+                        montage_status = st.write("Success! status:{}".format(status))
+                        montage_image = st.image(stitched)
+                        montage_save = st.button("save Image?")
+                        if montage_save:
+                            cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())),
+                                        cv2.cvtColor(stitchup[1], cv2.COLOR_RGB2BGR))
+                        montage_enhance = st.button("Enhance Montage")
+                        mclahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
+                        mgrids = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (8, 8)]
+                        mclahe_grid = st.select_slider("clahe grid", mgrids)
+                        if montage_enhance:
+                            enhanced = enhance_image(stitched, mclahe_clip, mclahe_grid)
+                            montage_image = st.image(enhanced)
 
-            if montage_button:
-                status,stitched = stitch_images(groupies[1],mode=mode,confidenceThresh=confThresh)
-                montage_status = st.write(status)
-                if status == 0:
-                    montage_status = st.write("Success! status:{}".format(status))
-                    montage_image = st.image(stitched)
-                    montage_save = st.button("save Image?")
-                    if montage_save:
-                        cv2.imwrite("./montage_testing/{}_mergeTest.png".format(str(datetime.now())), cv2.cvtColor(stitchup[1], cv2.COLOR_RGB2BGR))
-                    montage_enhance = st.button("Enhance Montage")
-                    mclahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
-                    mgrids = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (8, 8)]
-                    mclahe_grid = st.select_slider("clahe grid", mgrids)
-                    if montage_enhance:
-                        enhanced = enhance_image(stitched,mclahe_clip,mclahe_grid)
-                        montage_image = st.image(enhanced)
+                adv_stitcher = st.button("Generate Advanced Montage")
+                if adv_stitcher:
+                    matcher = get_matcher(gpu, mode, match_conf, features, rangewidth)
+                    st.write(matcher)
+                    ...
 
-
-
-
-            adv_stitcher = st.button("Generate Advanced Montage")
-            if adv_stitcher:
-                matcher = get_matcher(gpu,mode,match_conf,features,rangewidth)
-                st.write(matcher)
-                ...
 
 
         # compare_images()
+
 
 # Image Processing
 
@@ -434,10 +460,10 @@ if playground == 'Image Processing':
 
 
     '''
-    info_container = st.beta_container()
+    info_container = st.container()
 
     with info_container:
-        description_col, space, img_col = st.beta_columns((2, .5, 4))
+        description_col, space, img_col = st.columns((2, .5, 4))
 
 
     with description_col:
@@ -466,10 +492,10 @@ if playground == 'Image Processing':
         m_tiff = os.path.join(tiff_folder,tiff_name)
 
 
-    basic_container = st.beta_container()
+    basic_container = st.container()
 
     with basic_container:
-        description_col, space,img_col = st.beta_columns((2,.5,4))
+        description_col, space,img_col = st.columns((2,.5,4))
 
     with description_col:
         ### Set options here
@@ -497,10 +523,10 @@ if playground == 'Image Processing':
             cv2.imwrite("./optos_tiff/{}_base-merged.png".format(file_object.name),
                         cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
 
-    scale_container = st.beta_container()
+    scale_container = st.container()
 
     with scale_container:
-        description_col, space, img_col = st.beta_columns((2, .5, 4))
+        description_col, space, img_col = st.columns((2, .5, 4))
 
     with description_col:
 
@@ -525,10 +551,10 @@ if playground == 'Image Processing':
             cv2.imwrite("./optos_tiff/{}_scaled-merged.png".format(file_object.name),
                         cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
 
-    clahe_container = st.beta_container()
+    clahe_container = st.container()
 
     with clahe_container:
-        description_col, space, img_col = st.beta_columns((2, .5, 4))
+        description_col, space, img_col = st.columns((2, .5, 4))
 
     with description_col:
 
@@ -557,10 +583,10 @@ if playground == 'Image Processing':
                         cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
 
 
-    hsv_container = st.beta_container()
+    hsv_container = st.container()
 
     with hsv_container:
-        description_col, space, img_col = st.beta_columns((2, .5, 4))
+        description_col, space, img_col = st.columns((2, .5, 4))
 
     with description_col:
         '''
@@ -581,10 +607,10 @@ if playground == 'Image Processing':
                         cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
 
 
-    eq_container = st.beta_container()
+    eq_container = st.container()
 
     with eq_container:
-        description_col, space, img_col = st.beta_columns((2, .5, 4))
+        description_col, space, img_col = st.columns((2, .5, 4))
 
     with description_col:
         '''
@@ -628,9 +654,9 @@ if playground == 'OCR':
 
     img_file_buffer = file_uploader("read")
 
-    image_overview_section = st.beta_container()
+    image_overview_section = st.container()
     with image_overview_section:
-        img_col, space_col, ocr_col = st.beta_columns((4, 1, 4))
+        img_col, space_col, ocr_col = st.columns((4, 1, 4))
 
     if img_file_buffer is not None:
         st.write(img_file_buffer.type)

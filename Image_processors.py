@@ -21,7 +21,7 @@ def get_fundus_mask(img):
     # Return result
     return erode_img
 
-@st.cache(suppress_st_warning=True,allow_output_mutation=True)
+
 def circle_mask(image):
     mask = np.zeros(image.shape[:2], dtype="uint8")
     centerx = int((image.shape[1])/2)
@@ -198,7 +198,7 @@ def pre_stitch(image):
     clahe_g = clahe.apply(g)
     clahe_r = clahe.apply(r)
     able = cv2.merge((clahe_r, clahe_g, clahe_b))
-    #st.image(able)
+    st.image(able)
     return able
 
 def enhance_image(image,clipLimit,tileGridSize):

@@ -3,8 +3,7 @@ import cv2
 from Image_processors import *
 import streamlit as st
 from collections import OrderedDict
-
-
+import sys
 
 
 # Harris corner detection:
@@ -35,7 +34,7 @@ def get_harris_corners(image, filename):
 def sift_features(image):
     masked = circle_mask(image)
     gray = cv2.cvtColor(masked, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=1.9, tileGridSize=(8,8))
+    clahe = cv2.createCLAHE(clipLimit=1.9, tileGridSize=(8, 8))
     gray = clahe.apply(gray)
     try:
         sift = cv2.xfeatures2d.SIFT_create()
@@ -45,11 +44,11 @@ def sift_features(image):
     print(" kps: {}, descriptors: {}".format(len(kps), descs.shape))
     rgb = cv2.cvtColor(masked, cv2.COLOR_BGR2RGB)
     sift_image = cv2.drawKeypoints(rgb, kps, None, (0, 0, 255), 4)
-    return sift_image,kps, descs
+    return sift_image, kps, descs
 
 
 # Surf detection
-def surf_features(image,filename):
+def surf_features(image, filename):
     masked = circle_mask(image)
     gray = cv2.cv2tColor(masked, cv2.COLOR_BGR2GRAY)
     surf = cv2.xfeatures2d.SURF_create()
@@ -61,10 +60,10 @@ def surf_features(image,filename):
     cv2.waitKey(0)
 
 
-def compare_images(img1,img2):
+def compare_images(img1, img2):
     # read images
-    img1 = cv2.cv2tColor(img1,cv2.COLOR_BGR2RGB)
-    img2 = cv2.cv2tColor(img2,cv2.COLOR_BGR2RGB)
+    img1 = cv2.cv2tColor(img1, cv2.COLOR_BGR2RGB)
+    img2 = cv2.cv2tColor(img2, cv2.COLOR_BGR2RGB)
 
     grey1 = cv2.cv2tColor(img1, cv2.COLOR_BGR2GRAY)
     grey2 = cv2.cv2tColor(img2, cv2.COLOR_BGR2GRAY)
@@ -85,9 +84,10 @@ def compare_images(img1,img2):
     matches = sorted(matches, key=lambda x: x.distance)
 
     img3 = cv2.drawMatches(img1, keypoints_1, img2, keypoints_2, matches[0:450], img2, flags=2)
-    st.image(img3,caption='compared images')
-    #cv2.imshow('match', img3)
-    #cv2.waitKey(0)
+    st.image(img3, caption='compared images')
+    # cv2.imshow('match', img3)
+    # cv2.waitKey(0)
+
 
 def compare_images2(imageList):
     for img in imageList:
@@ -101,10 +101,13 @@ EXPOS_COMP_CHOICES['gain'] = cv2.detail.ExposureCompensator_GAIN
 EXPOS_COMP_CHOICES['channel'] = cv2.detail.ExposureCompensator_CHANNELS
 EXPOS_COMP_CHOICES['channel_blocks'] = cv2.detail.ExposureCompensator_CHANNELS_BLOCKS
 EXPOS_COMP_CHOICES['no'] = cv2.detail.ExposureCompensator_NO
+
+
 def display_expos_comp(expos_comp_choices):
     st.write(expos_comp_choices)
     choice_name = expos_comp_choices
     return choice_name
+
 
 BA_COST_CHOICES = OrderedDict()
 BA_COST_CHOICES['ray'] = cv2.detail_BundleAdjusterRay
@@ -114,7 +117,7 @@ BA_COST_CHOICES['no'] = cv2.detail_NoBundleAdjuster
 
 FEATURES_FIND_CHOICES = OrderedDict()
 try:
-    cv2.xfeatures2d_SURF.create() # check if the function can be called
+    cv2.xfeatures2d_SURF.create()  # check if the function can be called
     FEATURES_FIND_CHOICES['surf'] = cv2.xfeatures2d_SURF.create
 except (AttributeError, cv2.error) as e:
     print("SURF not available")
@@ -172,8 +175,14 @@ WAVE_CORRECT_CHOICES = ('horiz', 'no', 'vert',)
 BLEND_CHOICES = ('multiband', 'feather', 'no',)
 
 
-
-def stitch_images(imagesList,mode,confidenceThresh):
+def stitch_images(imagesList, mode, confidenceThresh):
+    perfect = 0
+    more = 1
+    less = 3
+    maskedList = []
+    for img in imagesList:
+        masked_img = circle_mask(img)
+        maskedList.append(masked_img)
 
     if mode == "panorama":
         st.write("panorama stitching")
@@ -185,11 +194,48 @@ def stitch_images(imagesList,mode,confidenceThresh):
         st.write("hmm, no mode?  stitching up like a robot")
         stitcher = cv2.Stitcher_create()
     stitcher.setPanoConfidenceThresh(confidenceThresh)
-    stitched = stitcher.stitch(imagesList)
-    return stitched
+    stitched = stitcher.stitch(maskedList)
+    if stitched[0] == perfect:
+        return stitched
+    if stitched[0] == 1:
+        while stitched[0] == 1:
+            st.write(f"not enough confidence in points found, decreasing confidence threshold and trying again..")
+            confidenceThresh = confidenceThresh + (-.1)
+            stitcher.setPanoConfidenceThresh(confidenceThresh)
+            stitched = stitcher.stitch(maskedList)
+            if stitched[0] == 0:
+                return stitched
+    if stitched[0] == 3:
+        while stitched[0] == 3:
+            st.write(
+                f"too many stitching candidates available at confidence threshold {confidenceThresh}\n\n increasing confidence threshold to {confidenceThresh + .1}")
+            confidenceThresh = confidenceThresh + .1
+            stitcher.setPanoConfidenceThresh(confidenceThresh)
+            try:
+                stitched = stitcher.stitch(maskedList)
+                st.write(stitched)
+            except:
+                exception = sys.exc_info()[0]
+                st.write(f"{exception}")
+            if stitched[0] == 0:
+                return stitched
+            elif stitched[0] == 1:
+                tries = 0
+                while stitched[0] == 1 and tries < 20:
+                    st.write(
+                        f"not enough confidence in points found, decreasing confidence threshold and trying again..")
+                    confidenceThresh = confidenceThresh + (-.01)
+                    stitcher.setPanoConfidenceThresh(confidenceThresh)
+                    tries = tries + 1
+                    stitched = stitcher.stitch(imagesList)
+                else:
+                    return stitched
+            elif confidenceThresh > 2:
+                st.write(f'stitching failure')
+                return stitched
 
 
-def get_matcher(gpu,matcher,match_conf,features,rangewidth):
+def get_matcher(gpu, matcher, match_conf, features, rangewidth):
     try_cuda = gpu
     matcher_type = matcher
     if match_conf is None:
@@ -201,14 +247,15 @@ def get_matcher(gpu,matcher,match_conf,features,rangewidth):
         match_conf = match_conf
     range_width = rangewidth
     if matcher_type == "affine":
-        matcher = cv2.detail_AffineBestOf2NearestMatcher(False, try_cuda,match_conf)
+        matcher = cv2.detail_AffineBestOf2NearestMatcher(False, try_cuda, match_conf)
     elif range_width == -1:
-        matcher = cv2.detail.BestOf2NearestMatcher_create(try_cuda,match_conf)
+        matcher = cv2.detail.BestOf2NearestMatcher_create(try_cuda, match_conf)
     else:
-        matcher = cv2.detail.BestOf2NearestRangeMatcher_create(range_width,try_cuda, match_conf)
+        matcher = cv2.detail.BestOf2NearestRangeMatcher_create(range_width, try_cuda, match_conf)
     return matcher
 
-def get_compensator(expos_comp,expos_comp_nr_feeds,expos_comp_block_size):
+
+def get_compensator(expos_comp, expos_comp_nr_feeds, expos_comp_block_size):
     expos_comp_type = EXPOS_COMP_CHOICES[expos_comp]
     expos_comp_nr_feeds = expos_comp_nr_feeds
     expos_comp_block_size = expos_comp_block_size
@@ -227,9 +274,8 @@ def get_compensator(expos_comp,expos_comp_nr_feeds,expos_comp_block_size):
     return compensator
 
 
-
-def adv_stitch_images(imagesList,mode,confidenceThresh,work_megapix,features, matcher, estimator, match_conf, ba, ba_refine_mask, save_graph, wave_correct, warp, blend, expos_comp, seam):
-
+def adv_stitch_images(imagesList, mode, confidenceThresh, work_megapix, features, matcher, estimator, match_conf, ba,
+                      ba_refine_mask, save_graph, wave_correct, warp, blend, expos_comp, seam):
     if mode == "panorama":
         st.write("panorama stitching")
         stitcher = cv2.Stitcher_create(cv2.STITCHER_PANORAMA)
@@ -244,8 +290,8 @@ def adv_stitch_images(imagesList,mode,confidenceThresh,work_megapix,features, ma
     return stitched
 
 
-def adv_stitch_images(imagesList,mode,confidenceThresh,work_megapix,features, matcher, estimator, match_conf, ba, ba_refine_mask, save_graph, wave_correct, warp, blend, expos_comp, seam):
-
+def adv_stitch_images(imagesList, mode, confidenceThresh, work_megapix, features, matcher, estimator, match_conf, ba,
+                      ba_refine_mask, save_graph, wave_correct, warp, blend, expos_comp, seam):
     if mode == "panorama":
         st.write("panorama stitching")
         stitcher = cv2.Stitcher_create(cv2.STITCHER_PANORAMA)
@@ -260,7 +306,7 @@ def adv_stitch_images(imagesList,mode,confidenceThresh,work_megapix,features, ma
     return stitched
 
 
-def detail_stitch(images,work_megapix,seam_megapix,compose_megapix):
+def detail_stitch(images, work_megapix, seam_megapix, compose_megapix):
     input_images = images
     img_names = args.img_names
     print(img_names)
@@ -316,7 +362,7 @@ def detail_stitch(images,work_megapix,seam_megapix,compose_megapix):
                 work_scale = min(1.0, np.sqrt(work_megapix * 1e6 / (full_img.shape[0] * full_img.shape[1])))
                 is_work_scale_set = True
             img = cv2.resize(src=full_img, dsize=None, fx=work_scale, fy=work_scale,
-                            interpolation=cv2.INTER_LINEAR_EXACT)
+                             interpolation=cv2.INTER_LINEAR_EXACT)
         if is_seam_scale_set is False:
             seam_scale = min(1.0, np.sqrt(seam_megapix * 1e6 / (full_img.shape[0] * full_img.shape[1])))
             seam_work_aspect = seam_scale / work_scale
@@ -451,7 +497,7 @@ def detail_stitch(images,work_megapix,seam_megapix,compose_megapix):
                 sizes.append(roi[2:4])
         if abs(compose_scale - 1) > 1e-1:
             img = cv2.resize(src=full_img, dsize=None, fx=compose_scale, fy=compose_scale,
-                            interpolation=cv2.INTER_LINEAR_EXACT)
+                             interpolation=cv2.INTER_LINEAR_EXACT)
         else:
             img = full_img
         _img_size = (img.shape[1], img.shape[0])
@@ -463,7 +509,7 @@ def detail_stitch(images,work_megapix,seam_megapix,compose_megapix):
         image_warped_s = image_warped.astype(np.int16)
         dilated_mask = cv2.dilate(masks_warped[idx], None)
         seam_mask = cv2.resize(dilated_mask, (mask_warped.shape[1], mask_warped.shape[0]), 0, 0,
-                              cv2.INTER_LINEAR_EXACT)
+                               cv2.INTER_LINEAR_EXACT)
         mask_warped = cv2.bitwise_and(seam_mask, mask_warped)
         if blender is None and not timelapse:
             blender = cv2.detail.Blender_createDefault(cv2.detail.Blender_NO)
