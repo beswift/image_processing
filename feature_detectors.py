@@ -176,44 +176,45 @@ BLEND_CHOICES = ('multiband', 'feather', 'no',)
 
 
 def stitch_images(imagesList, mode, confidenceThresh):
+    status = st.empty()
     perfect = 0
-    more = 1
-    less = 3
+    less = 1
+    more = 3
     maskedList = []
     for img in imagesList:
         masked_img = circle_mask(img)
         maskedList.append(masked_img)
 
     if mode == "panorama":
-        st.write("panorama stitching")
+        status.write("panorama stitching")
         stitcher = cv2.Stitcher_create(cv2.STITCHER_PANORAMA)
     elif mode == "affine":
-        st.write("affine stitching")
+        status.write("affine stitching")
         stitcher = cv2.Stitcher_create(cv2.STITCHER_SCANS)
     else:
-        st.write("hmm, no mode?  stitching up like a robot")
+        status.write("hmm, no mode?  stitching up like a robot")
         stitcher = cv2.Stitcher_create()
     stitcher.setPanoConfidenceThresh(confidenceThresh)
     stitched = stitcher.stitch(maskedList)
     if stitched[0] == perfect:
         return stitched
-    if stitched[0] == 1:
-        while stitched[0] == 1:
-            st.write(f"not enough confidence in points found, decreasing confidence threshold and trying again..")
+    if stitched[0] == less:
+        while stitched[0] == less:
+            status.write(f"not enough confidence in points found, decreasing confidence threshold and trying again..")
             confidenceThresh = confidenceThresh + (-.1)
             stitcher.setPanoConfidenceThresh(confidenceThresh)
             stitched = stitcher.stitch(maskedList)
             if stitched[0] == 0:
                 return stitched
-    if stitched[0] == 3:
-        while stitched[0] == 3:
-            st.write(
+    if stitched[0] == more:
+        while stitched[0] == more:
+            status.write(
                 f"too many stitching candidates available at confidence threshold {confidenceThresh}\n\n increasing confidence threshold to {confidenceThresh + .1}")
-            confidenceThresh = confidenceThresh + .1
+            confidenceThresh = confidenceThresh + .05
             stitcher.setPanoConfidenceThresh(confidenceThresh)
             try:
                 stitched = stitcher.stitch(maskedList)
-                st.write(stitched)
+
             except:
                 exception = sys.exc_info()[0]
                 st.write(f"{exception}")
@@ -222,7 +223,7 @@ def stitch_images(imagesList, mode, confidenceThresh):
             elif stitched[0] == 1:
                 tries = 0
                 while stitched[0] == 1 and tries < 20:
-                    st.write(
+                    status.write(
                         f"not enough confidence in points found, decreasing confidence threshold and trying again..")
                     confidenceThresh = confidenceThresh + (-.01)
                     stitcher.setPanoConfidenceThresh(confidenceThresh)
@@ -231,7 +232,7 @@ def stitch_images(imagesList, mode, confidenceThresh):
                 else:
                     return stitched
             elif confidenceThresh > 2:
-                st.write(f'stitching failure')
+                status.write(f'stitching failure')
                 return stitched
 
 

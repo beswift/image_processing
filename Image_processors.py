@@ -26,7 +26,7 @@ def circle_mask(image):
     mask = np.zeros(image.shape[:2], dtype="uint8")
     centerx = int((image.shape[1])/2)
     centery = int((image.shape[0])/2)
-    radius = int((image.shape[0])/1.7)
+    radius = int((image.shape[0])/1.65)
     cv2.circle(mask, (centerx,centery), radius, 255,-1)
     masked = cv2.bitwise_and(image,image, mask=mask)
     # show the output images
