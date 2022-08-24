@@ -186,8 +186,12 @@ if playground == 'Image Alignment':
             '''
             '''
             view_options = st.multiselect("apply:",["none","mask","grey","clahe","eClahe","sift"])
+            if not "view_options" in st.session_state:
+                st.session_state["view_options"] = view_options
 
+            st.session_state['view_options']= view_options
 
+        print(view_options)
 
         with compare_viewer_col:
             '''
@@ -206,81 +210,96 @@ if playground == 'Image Alignment':
 
             sift_view = st.empty()
 
+            try:
+                if "none" in view_options:
+                    base_imgs = []
+                    for image in input_images:
+                        image = cv2.cvtColor(image[0],cv2.COLOR_BGR2RGB)
+                        base_imgs.append(image)
+                    base_overview = np.concatenate(base_imgs, axis=1)
+                    base_view = st.image(base_overview)
+            except Exception as e:
+                st.write(e)
 
-            if "none" in view_options:
-                base_imgs = []
-                for image in input_images:
-                    image = cv2.cvtColor(image[0],cv2.COLOR_BGR2RGB)
-                    base_imgs.append(image)
-                base_overview = np.concatenate(base_imgs, axis=1)
-                base_view = st.image(base_overview)
+            try:
 
-            if "mask" in view_options:
-                masked_imgs = []
-                for image in input_images:
-                    masked_img = circle_mask(image[0])
-                    masked_img = cv2.cvtColor(masked_img,cv2.COLOR_BGR2RGB)
-                    masked_imgs.append(masked_img)
-                masked_overview = np.concatenate(masked_imgs, axis=1)
-                mask_view = st.image(masked_overview)
+                if "mask" in view_options:
+                    masked_imgs = []
+                    for image in input_images:
+                        masked_img = circle_mask(image[0])
+                        masked_img = cv2.cvtColor(masked_img,cv2.COLOR_BGR2RGB)
+                        masked_imgs.append(masked_img)
+                    masked_overview = np.concatenate(masked_imgs, axis=1)
+                    mask_view = st.image(masked_overview)
+            except Exception as e:
+                st.write(e)
+            try:
+                if 'grey' in view_options:
+                    grey_imgs = []
+                    for image in input_images:
+                        grey_img = cv2.cvtColor(image[0], cv2.COLOR_BGR2GRAY)
+                        grey_imgs.append(grey_img)
+                    grey_overview = np.concatenate(grey_imgs, axis=1)
+                    grey_view = st.image(grey_overview)
+            except Exception as e:
+                st.write(e)
 
-            if 'grey' in view_options:
-                grey_imgs = []
-                for image in input_images:
-                    grey_img = cv2.cvtColor(image[0], cv2.COLOR_BGR2GRAY)
-                    grey_imgs.append(grey_img)
-                grey_overview = np.concatenate(grey_imgs, axis=1)
-                grey_view = st.image(grey_overview)
+            try:
+                if "clahe" in view_options:
+                    if not "clahe_clip" in st.session_state:
+                        st.session_state.clahe_clip = 1.0
+                    if not "clahe_grid" in st.session_state:
+                        st.session_state.clahe_grid = (3,3)
+                    clahe_clip = st.slider("clip limit",0.0,10.0,1.8)
+                    st.session_state.clahe_clip = clahe_clip
+                    grids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
+                    st.write(grids[1])
+                    clahe_grid = st.selectbox("clahe grid",grids)
+                    st.session_state.clahe_grid = clahe_grid
+                    clahe_imgs = []
+                    for image in input_images:
+                        clahe = cv2.createCLAHE(clipLimit=st.session_state.clahe_clip, tileGridSize=st.session_state.clahe_grid)
+                        g = cv2.cvtColor(image[0],cv2.COLOR_BGR2GRAY)
+                        clahe_img = clahe.apply(g)
+                        clahe_imgs.append(clahe_img)
+                    clahe_overview = np.concatenate(clahe_imgs, axis=1)
+                    clahe_view = st.image(clahe_overview)
+            except Exception as e:
+                st.write(e)
 
-            if "clahe" in view_options:
-                if not "clahe_clip" in st.session_state:
-                    st.session_state.clahe_clip = 1.0
-                if not "clahe_grid" in st.session_state:
-                    st.session_state.clahe_grid = (3,3)
-                clahe_clip = st.slider("clip limit",0.0,10.0,1.8)
-                st.session_state.clahe_clip = clahe_clip
-                grids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
-                st.write(grids[1])
-                clahe_grid = st.selectbox("clahe grid",grids)
-                st.session_state.clahe_grid = clahe_grid
-                clahe_imgs = []
-                for image in input_images:
-                    clahe = cv2.createCLAHE(clipLimit=st.session_state.clahe_clip, tileGridSize=st.session_state.clahe_grid)
-                    g = cv2.cvtColor(image[0],cv2.COLOR_BGR2GRAY)
-                    clahe_img = clahe.apply(g)
-                    clahe_imgs.append(clahe_img)
-                clahe_overview = np.concatenate(clahe_imgs, axis=1)
-                clahe_view = st.image(clahe_overview)
+            try:
 
-            if "eClahe" in view_options:
-                if not "eclahe_clip" in st.session_state:
-                    st.session_state.eclahe_clip = 1.0
-                if not "eclahe_grid" in st.session_state:
-                    st.session_state.eclahe_grid = (3,3)
-                eClahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
-                st.session_state.eclahe_clip = eClahe_clip
-                egrids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
-                #eClahe_grid = st.select_slider("eclahe grid",egrids)
-                eClahe_grid= st.selectbox("eclahe grid", [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)])
-                st.session_state.eclahe_grid = eClahe_grid
-                eClahe_imgs = []
-                try:
-                    if masked_imgs:
-                        for image in masked_imgs:
-                            eClahe = cv2.createCLAHE(clipLimit=st.session_state.eclahe_clip, tileGridSize=st.session_state.eclahe_grid)
-                            r,g,b = cv2.split(image)
-                            b_clahe_img = eClahe.apply(b)
-                            g_clahe_img = eClahe.apply(g)
-                            r_clahe_img = eClahe.apply(r)
-                            eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
-                            eClahe_imgs.append(eClahe_img)
-                        eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
-                        eClahe_view = st.image(eClahe_overview)
-                        enhanced = enhance_nMask_group(input_images, rc=eClahe_clip, rt=st.session_state.eclahe_grid)
-                        st.image(enhanced)
-                except:
-                    st.write(f'issue displaying eclahe')
-                    print(traceback.format_exc())
+                if "eClahe" in view_options:
+                    if not "eclahe_clip" in st.session_state:
+                        st.session_state.eclahe_clip = 1.0
+                    if not "eclahe_grid" in st.session_state:
+                        st.session_state.eclahe_grid = (3,3)
+                    eClahe_clip = st.slider("eclip limit", 0.0, 10.0, 1.8, .1)
+                    st.session_state.eclahe_clip = eClahe_clip
+                    egrids = [(1,1),(2,2),(3,3),(4,4),(5,5),(8,8)]
+                    #eClahe_grid = st.select_slider("eclahe grid",egrids)
+                    eClahe_grid= st.selectbox("eclahe grid", egrids)
+                    st.session_state.eclahe_grid = eClahe_grid
+                    eClahe_imgs = []
+                    try:
+                        if masked_imgs:
+                            for image in masked_imgs:
+                                eClahe = cv2.createCLAHE(clipLimit=st.session_state.eclahe_clip, tileGridSize=st.session_state.eclahe_grid)
+                                r,g,b = cv2.split(image)
+                                b_clahe_img = eClahe.apply(b)
+                                g_clahe_img = eClahe.apply(g)
+                                r_clahe_img = eClahe.apply(r)
+                                eClahe_img = cv2.cvtColor(cv2.merge((b_clahe_img,g_clahe_img,r_clahe_img)),cv2.COLOR_BGR2RGB)
+                                eClahe_imgs.append(eClahe_img)
+                            eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
+                            eClahe_view = st.image(eClahe_overview)
+                            enhanced = enhance_nMask_group(input_images, rc=eClahe_clip, rt=st.session_state.eclahe_grid)
+                            st.image(enhanced)
+                    except:
+                        st.write(f'issue displaying eclahe')
+                        print(traceback.format_exc())
+            except Exception as e:
+                st.write(e)
 
                     # for image in input_images:
                         #eClahe = cv2.createCLAHE(clipLimit=eClahe_clip, tileGridSize=eClahe_grid)
@@ -292,24 +311,26 @@ if playground == 'Image Alignment':
                         #eClahe_imgs.append(eClahe_img)
                     #eClahe_overview = np.concatenate(eClahe_imgs, axis=1)
                    # eClahe_view = st.image(eClahe_overview)
+            try:
+                if "sift" in view_options:
+                    #image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]
+                    sift_images = []
+                    kp_desc = []
+                    for image in input_images:
+                        sift_image,kps,descs = sift_features(image[0])
+                        sift_images.append(sift_image)
+                        kp_desc.append((kps,descs))
+                    sift_overview = np.concatenate(sift_images, axis=1)
+                    sift_view = st.image(sift_overview)
 
-            if "sift" in view_options:
-                #image_lists = [base_imgs,masked_imgs,grey_imgs,clahe_imgs]
-                sift_images = []
-                kp_desc = []
-                for image in input_images:
-                    sift_image,kps,descs = sift_features(image[0])
-                    sift_images.append(sift_image)
-                    kp_desc.append((kps,descs))
-                sift_overview = np.concatenate(sift_images, axis=1)
-                sift_view = st.image(sift_overview)
-
-                with l_info_col:
-                    '''
-                    '''
-                    keypoints_status = st.empty()
-                    if "sift" in view_options:
-                        st.write(kp_desc)
+                    with l_info_col:
+                        '''
+                        '''
+                        keypoints_status = st.empty()
+                        if "sift" in view_options:
+                            st.write(kp_desc)
+            except Exception as e:
+                st.write(e)
 
         default_groupies = []
         for image in input_images:
@@ -318,7 +339,7 @@ if playground == 'Image Alignment':
         st.write(default_groupies)
 
         # Montage time
-        if default_groupies:
+        if len(default_groupies) > 1:
             '''
             ## ** Step 3. ** Montage
             '''
@@ -339,23 +360,37 @@ if playground == 'Image Alignment':
 
         with settings_col:
             # create group of images to be montaged
-            groupy_options = []
+
+
             if not 'groupy_options' in st.session_state:
-                st.session_state.groupy_options = default_groupies
-            st.session_state.groupy_options = default_groupies
+                groupy_options = []
+                st.session_state.groupy_options = groupy_options
+            else:
+                groupy_options = st.session_state.groupy_options
+
+
+            print(groupy_options)
+            print(view_options)
+
 
             #groupy_options.append(('default_groupies', default_groupies))
 
             if "none" in view_options:
                 groupy_options.append(('none', base_imgs))
+                st.session_state.groupy_options = groupy_options
             if 'mask' in view_options:
                 groupy_options.append(('masked', masked_imgs))
+                st.session_state.groupy_options = groupy_options
             if 'grey' in view_options:
                 groupy_options.append(('grey', grey_imgs))
+                st.session_state.groupy_options = groupy_options
             if 'clahe' in view_options:
                 groupy_options.append(('clahe', clahe_imgs))
+                st.session_state.groupy_options = groupy_options
             if 'eClahe' in view_options:
                 groupy_options.append(('eClahe', eClahe_imgs))
+                st.session_state.groupy_options = groupy_options
+            print(groupy_options)
 
 
             def get_group_name(tuple):
@@ -392,7 +427,7 @@ if playground == 'Image Alignment':
             st.write("Compensator settings:")
             expos_comp = st.selectbox("select expos_comp:", list(EXPOS_COMP_CHOICES), 4, format_func=display_expos_comp)
             expos_comp_nr_feeds = st.slider("compensation feeds", 0, 3, 1, 1)
-            expos_comp_block_size = st.slider("compensation block size, 0,4,2,1")
+            expos_comp_block_size = st.slider("compensation block size", 0,4,2,1)
             st.write(expos_comp)
 
             seam = st.slider("select seam:", 0.0, 2.0, 0.05, 0.01)
@@ -416,7 +451,7 @@ if playground == 'Image Alignment':
                         montage_enhance = st.button("Enhance Montage")
                         mclahe_clip = st.slider("clip limit", 0.0, 10.0, 1.8, .1)
                         mgrids = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5), (8, 8)]
-                        mclahe_grid = st.select_slider("clahe grid", mgrids)
+                        mclahe_grid = st.selectbox("clahe grid", mgrids)
                         if montage_enhance:
                             enhanced = enhance_image(stitched, mclahe_clip, mclahe_grid)
                             montage_image = st.image(enhanced)
@@ -481,7 +516,19 @@ if playground == 'Image Processing':
 
         # upload a file
         file_object = file_uploader("merge")
-        tiff_name = file_object.name
+        try:
+            tiff_name = file_object.name
+            if not "current_tiff" in st.session_state:
+                st.session_state["current_tiff"] = tiff_name
+            else:
+                st.session_state['current_tiff'] = tiff_name
+        except:
+            traceback.print_exc()
+            if "current_tiff" in st.session_state:
+                tiff_name = st.session_state["current_tiff"]
+            else:
+                tiff_name = None
+
         if file_object is not None:
             #image_file = generate_tiff_files(file_object)
             #bytes_img = file_object.read()
@@ -489,7 +536,8 @@ if playground == 'Image Processing':
 
         #working_file = cv2.imwrite(os.path.join(upload_folder,tiff_name),img_file_buffered)
         #m_tiff = img_file_buffered
-        m_tiff = os.path.join(tiff_folder,tiff_name)
+
+    m_tiff = os.path.join(tiff_folder,tiff_name)
 
 
     basic_container = st.container()
@@ -505,6 +553,8 @@ if playground == 'Image Processing':
 
     with img_col:
         # get file layers
+        print("tiff_name: {}".format(tiff_name))
+        print("m_tiff: {}".format(m_tiff))
         blue, green, red = create_tiff_layers(m_tiff)
 
         # Basic Comparison
@@ -549,7 +599,7 @@ if playground == 'Image Processing':
         save_scaled_img = st.button("save scaled image")
         if save_scaled_img:
             cv2.imwrite("./optos_tiff/{}_scaled-merged.png".format(file_object.name),
-                        cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
+                        cv2.cvtColor(scaled_merge, cv2.COLOR_BGR2RGB))
 
     clahe_container = st.container()
 
@@ -559,7 +609,7 @@ if playground == 'Image Processing':
     with description_col:
 
         cliplimit = st.slider("select a clip limit", min_value=0.0, max_value = 100.0, value = 1.9, step=.1)
-        tileGridSize = st.select_slider("select a tile grid size", options=[(1,1),(2,2),(3,3),(5,5),(8,8),(13,13),(21,21)])
+        tileGridSize = st.selectbox("select a tile grid size", options=[(1,1),(2,2),(3,3),(5,5),(8,8),(13,13),(21,21)])
 
     with img_col:
 
@@ -578,9 +628,9 @@ if playground == 'Image Processing':
         st.image(clahe_compare, caption="clahe comparison")
         st.image(clahe_merged, caption="clahe output")
         save_clahe_img = st.button("save clahe image")
-        if save_base_img:
+        if save_clahe_img:
             cv2.imwrite("./optos_tiff/{}_clahe-merged.png".format(file_object.name),
-                        cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
+                        cv2.cvtColor(clahe_merged, cv2.COLOR_BGR2RGB))
 
 
     hsv_container = st.container()
@@ -610,12 +660,12 @@ if playground == 'Image Processing':
     eq_container = st.container()
 
     with eq_container:
-        description_col, space, img_col = st.columns((2, .5, 4))
+        eq_description_col, space, eq_img_col = st.columns((2, .5, 4))
 
-    with description_col:
+    with eq_description_col:
         '''
         '''
-    with img_col:
+    with eq_img_col:
         # Equalized Images
         red_eq = cv2.equalizeHist(red,dst=None)
         blue_eq = cv2.equalizeHist(blue,dst=None)
@@ -629,7 +679,7 @@ if playground == 'Image Processing':
         save_eq_img = st.button("save eq image")
         if save_eq_img:
             cv2.imwrite("./optos_tiff/{}_eq-merged.png".format(file_object.name),
-                        cv2.cvtColor(brg_merged, cv2.COLOR_BGR2RGB))
+                        cv2.cvtColor(eq_merged, cv2.COLOR_BGR2RGB))
 
 
 
