@@ -182,8 +182,13 @@ def stitch_images(imagesList, mode, confidenceThresh):
     more = 3
     maskedList = []
     for img in imagesList:
-        masked_img = circle_mask(img)
-        maskedList.append(masked_img)
+        try:
+
+            masked_img = remove(img)
+            maskedList.append(masked_img)
+        except:
+            masked_img = circle_mask(img)
+            maskedList.append(masked_img)
 
     if mode == "panorama":
         status.write("panorama stitching")

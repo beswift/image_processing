@@ -16,9 +16,9 @@ import csv
 from feature_detectors import *
 from feature_detectors import display_expos_comp
 from Image_processors import *
-import pytesseract as ts
-from pytesseract import Output
-from pdf2image import convert_from_path, convert_from_bytes
+#import pytesseract as ts
+#from pytesseract import Output
+#from pdf2image import convert_from_path, convert_from_bytes
 from io import BytesIO
 from PIL import Image
 import tifffile
@@ -89,7 +89,11 @@ if playground == 'Montage':
         more = 1
         less = 3
         for image in input_images:
-            image =circle_mask((cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)))
+            try:
+                image = Image.open(input_path)
+                image = remove(input)
+            except:
+                image =circle_mask((cv2.cvtColor(image[0], cv2.COLOR_BGR2RGB)))
             image_list.append(image)
             st.write("merge candidates: {}".format(len(image_list)))
         stitchup = stitch_images(image_list, mode="neither",confidenceThresh =confThresh)
@@ -226,9 +230,14 @@ if playground == 'Image Alignment':
                 if "mask" in view_options:
                     masked_imgs = []
                     for image in input_images:
-                        masked_img = circle_mask(image[0])
-                        masked_img = cv2.cvtColor(masked_img,cv2.COLOR_BGR2RGB)
-                        masked_imgs.append(masked_img)
+                        try:
+                            image = Image.open(input_path)
+                            image = remove(input)
+                            masked_imgs.append(image)
+                        except:
+                            masked_img = circle_mask(image[0])
+                            masked_img = cv2.cvtColor(masked_img,cv2.COLOR_BGR2RGB)
+                            masked_imgs.append(masked_img)
                     masked_overview = np.concatenate(masked_imgs, axis=1)
                     mask_view = st.image(masked_overview)
             except Exception as e:
@@ -258,10 +267,19 @@ if playground == 'Image Alignment':
                     st.session_state.clahe_grid = clahe_grid
                     clahe_imgs = []
                     for image in input_images:
-                        clahe = cv2.createCLAHE(clipLimit=st.session_state.clahe_clip, tileGridSize=st.session_state.clahe_grid)
-                        g = cv2.cvtColor(image[0],cv2.COLOR_BGR2GRAY)
-                        clahe_img = clahe.apply(g)
-                        clahe_imgs.append(clahe_img)
+                        try:
+                            image = Image.open(input_path)
+                            image = remove(input)
+                            #convert image to lab
+                            image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                            image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+                            clahe_imgs.append(image)
+                        except:
+
+                            clahe = cv2.createCLAHE(clipLimit=st.session_state.clahe_clip, tileGridSize=st.session_state.clahe_grid)
+                            g = cv2.cvtColor(image[0],cv2.COLOR_BGR2GRAY)
+                            clahe_img = clahe.apply(g)
+                            clahe_imgs.append(clahe_img)
                     clahe_overview = np.concatenate(clahe_imgs, axis=1)
                     clahe_view = st.image(clahe_overview)
             except Exception as e:
