@@ -161,8 +161,11 @@ def createCLAHE(Clahe_clip, TileGrildside):
 
 
 def clahe(clahe,img):
-    img = clahe.apply(img)
-    return img
+    lab = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+    lab[:, :, 0] = clahe.apply(lab[:, :, 0])  #
+    return cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+    #img = clahe.apply(img)
+    #return img
 
 def eclahe(img,rc=1.0,rt=(8,8),gc=1.0,gt=(8,8),bc=1.0,bt=(8,8)):
     b,g,r = cv2.split(img)
